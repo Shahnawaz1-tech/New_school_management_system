@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HR & Payroll · Bright School</title>
+  <link rel="icon" href="../assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link id="bs-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/theme.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/print.css" media="print">
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <style>
+    /* ── HR page styles ── */
+    .hr-tabs .nav-link { border-radius: 10px; font-weight: 500; color: var(--muted); padding: .45rem 1rem; }
+    .hr-tabs .nav-link.active { background: var(--amber); color: var(--navy); font-weight: 600; }
+    .hr-tabs .nav-link:hover:not(.active) { background: var(--surface-2); color: var(--text); }
+
+    .staff-avatar {
+      width: 40px; height: 40px; border-radius: 50%; background: var(--navy);
+      color: var(--amber); display: inline-grid; place-items: center;
+      font-weight: 700; font-size: .82rem; flex: none;
+    }
+    .staff-avatar.female { background: rgba(232,163,23,.18); color: #8A5F00; }
+    [data-bs-theme="dark"] .staff-avatar.female { background: rgba(232,163,23,.25); color: var(--amber); }
+
+    .dept-badge { font-size: .72rem; font-weight: 600; padding: .18rem .55rem; border-radius: 99px; }
+    .dept-Academics  { background: rgba(13,110,253,.12); color: #0A58CA; }
+    .dept-Administration { background: rgba(25,135,84,.12); color: #157347; }
+    .dept-Finance    { background: rgba(232,163,23,.2);  color: #8A5F00; }
+    .dept-Operations { background: rgba(108,117,125,.15); color: #495057; }
+    [data-bs-theme="dark"] .dept-Academics    { color: #8FB4FF; }
+    [data-bs-theme="dark"] .dept-Administration { color: #6FD3A0; }
+    [data-bs-theme="dark"] .dept-Finance      { color: var(--amber); }
+    [data-bs-theme="dark"] .dept-Operations   { color: #adb5bd; }
+
+    /* Payslip */
+    .payslip-wrap { font-size: .85rem; }
+    .payslip-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; padding-bottom: .75rem; border-bottom: 2px solid var(--navy); }
+    .payslip-header img { width: 44px; height: 44px; }
+    .payslip-header .school-name { font-size: 1.1rem; font-weight: 700; }
+    .payslip-title { text-align: center; font-weight: 700; letter-spacing: .08em; font-size: .8rem; background: var(--navy); color: var(--amber); padding: .3rem; border-radius: 6px; margin-bottom: .75rem; }
+    .payslip-table { width: 100%; border-collapse: collapse; }
+    .payslip-table td { padding: .3rem .1rem; border-bottom: 1px solid var(--border); }
+    .payslip-table td:last-child { text-align: right; font-weight: 500; }
+    .payslip-total td { font-weight: 700; font-size: 1rem; border-top: 2px solid var(--navy); border-bottom: 2px solid var(--navy); }
+    .payslip-footer { margin-top: .75rem; font-size: .72rem; color: var(--muted); text-align: center; border-top: 1px dashed var(--border); padding-top: .5rem; }
+
+    /* Leave timeline */
+    .leave-item { display: flex; gap: .85rem; padding: .7rem 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+    .leave-item:last-child { border-bottom: 0; }
+    .leave-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex: none; }
+
+    /* Salary bar chart */
+    .sal-bar-wrap { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+    .sal-bar { flex: 1; border-radius: 4px 4px 0 0; background: var(--brand); opacity: .75; transition: opacity .2s; min-width: 0; }
+    .sal-bar:hover { opacity: 1; }
+
+    /* Profile offcanvas */
+    .staff-profile-head { display: flex; gap: 1rem; align-items: center; padding: 1.25rem; background: var(--navy); color: #fff; border-radius: var(--radius) var(--radius) 0 0; }
+    .staff-profile-head .avatar-lg { width: 64px; height: 64px; border-radius: 50%; background: rgba(232,163,23,.25); color: var(--amber); display: grid; place-items: center; font-size: 1.4rem; font-weight: 700; flex: none; }
+    .info-row { display: flex; gap: .5rem; align-items: center; font-size: .85rem; padding: .35rem 0; border-bottom: 1px solid var(--border); }
+    .info-row:last-child { border-bottom: 0; }
+    .info-row i { color: var(--amber); width: 18px; text-align: center; }
+
+    /* Attendance heatmap */
+    .att-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .att-cell { aspect-ratio: 1; border-radius: 4px; background: var(--surface-2); font-size: .6rem; display: grid; place-items: center; cursor: default; }
+    .att-cell.present { background: rgba(25,135,84,.55); }
+    .att-cell.absent  { background: rgba(220,53,69,.45); }
+    .att-cell.leave   { background: rgba(232,163,23,.5); }
+
+    /* Stat ring */
+    .ring-wrap { position: relative; width: 80px; height: 80px; flex: none; }
+    .ring-wrap svg { transform: rotate(-90deg); }
+    .ring-wrap .ring-val { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 700; font-size: .95rem; }
+
+    /* Bulk action bar */
+    #hrBulkBar { background: var(--navy); color: #fff; border-radius: 12px; padding: .6rem 1rem; gap: .75rem; align-items: center; }
+  </style>
+</head>
+<body data-page="hr" data-title-key="m_hr" data-group="g_people">
+  <a class="visually-hidden-focusable skip-link" href="#page">Skip to content</a>
+
+  <main id="page" tabindex="-1">
+    <!-- Page head -->
+    <div class="page-head">
+      <div>
+        <h1 class="h3 mb-1">HR &amp; Payroll</h1>
+        <p class="text-muted mb-0">Manage staff, salaries, leaves and attendance.</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <button class="btn btn-outline-secondary" id="exportStaffBtn"><i class="bi bi-download me-1"></i>Export CSV</button>
+        <button class="btn btn-primary" id="addStaffBtn"><i class="bi bi-plus-lg me-1"></i>Add Staff</button>
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div class="row g-3 mb-3" id="hrKpi"></div>
+
+    <!-- Tabs -->
+    <ul class="nav hr-tabs gap-1 mb-3 flex-wrap" id="hrTabNav" role="tablist">
+      <li class="nav-item"><button class="nav-link active" data-tab="staff">  <i class="bi bi-people-fill me-1"></i>Staff Directory</button></li>
+      <li class="nav-item"><button class="nav-link" data-tab="payroll">       <i class="bi bi-cash-stack me-1"></i>Payroll</button></li>
+      <li class="nav-item"><button class="nav-link" data-tab="leaves">        <i class="bi bi-calendar-x me-1"></i>Leave Requests</button></li>
+      <li class="nav-item"><button class="nav-link" data-tab="attendance">    <i class="bi bi-calendar-check me-1"></i>Attendance</button></li>
+    </ul>
+
+    <!-- ══════════ TAB: STAFF DIRECTORY ══════════ -->
+    <div id="tab-staff">
+      <!-- Filters -->
+      <div class="card-soft mb-3 p-3">
+        <div class="row g-2 align-items-end">
+          <div class="col-12 col-sm-6 col-lg-4">
+            <div class="input-group">
+              <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
+              <input type="search" class="form-control border-start-0" id="staffSearch" placeholder="Search name, ID, subject…">
+            </div>
+          </div>
+          <div class="col-6 col-sm-3 col-lg-2">
+            <select class="form-select" id="filterDept"><option value="">All Departments</option></select>
+          </div>
+          <div class="col-6 col-sm-3 col-lg-2">
+            <select class="form-select" id="filterDesig"><option value="">All Designations</option></select>
+          </div>
+          <div class="col-6 col-sm-3 col-lg-2">
+            <select class="form-select" id="filterGender"><option value="">All Genders</option><option>Male</option><option>Female</option></select>
+          </div>
+          <div class="col-6 col-sm-3 col-lg-2 d-flex gap-2">
+            <button class="btn btn-outline-secondary w-100" id="clearStaffFilters"><i class="bi bi-x-lg me-1"></i>Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bulk bar -->
+      <div class="d-none mb-2" id="hrBulkBar">
+        <i class="bi bi-check2-square"></i>
+        <span id="hrBulkCount">0 selected</span>
+        <button class="btn btn-sm btn-danger ms-auto" id="hrBulkDelete"><i class="bi bi-trash me-1"></i>Delete Selected</button>
+      </div>
+
+      <!-- Table -->
+      <div class="card-soft">
+        <div class="card-head">
+          <span id="staffCount" class="text-muted small">Loading…</span>
+          <div class="d-flex gap-2 align-items-center">
+            <span class="text-muted small" id="staffPageInfo"></span>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-modern mb-0" id="staffTable">
+            <thead>
+              <tr>
+                <th class="ps-3" style="width:36px"><input type="checkbox" class="form-check-input" id="checkAllStaff"></th>
+                <th class="sortable" data-col="name">Name</th>
+                <th class="sortable" data-col="designation">Designation</th>
+                <th class="sortable" data-col="department">Department</th>
+                <th class="sortable" data-col="subject">Subject</th>
+                <th class="sortable" data-col="salary">Salary</th>
+                <th class="sortable" data-col="joinDate">Joined</th>
+                <th>Status</th>
+                <th class="text-end pe-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="staffBody"></tbody>
+          </table>
+        </div>
+        <div class="d-flex justify-content-center py-2">
+          <ul class="pagination pagination-sm mb-0" id="staffPagination"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ TAB: PAYROLL ══════════ -->
+    <div id="tab-payroll" class="d-none">
+      <div class="row g-3 mb-3" id="payrollKpi"></div>
+      <div class="row g-3">
+        <div class="col-12 col-lg-8">
+          <div class="card-soft">
+            <div class="card-head">
+              <span><i class="bi bi-cash-stack me-2 text-warning"></i>Salary Register</span>
+              <div class="d-flex gap-2">
+                <select class="form-select form-select-sm" id="payrollMonth" style="width:auto"></select>
+                <button class="btn btn-sm btn-success" id="runPayrollBtn"><i class="bi bi-play-fill me-1"></i>Run Payroll</button>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-modern mb-0" id="payrollTable">
+                <thead>
+                  <tr>
+                    <th class="ps-3">Staff</th>
+                    <th>Designation</th>
+                    <th>Basic</th>
+                    <th>Allowance</th>
+                    <th>Deduction</th>
+                    <th>Net Pay</th>
+                    <th>Status</th>
+                    <th class="text-end pe-3">Payslip</th>
+                  </tr>
+                </thead>
+                <tbody id="payrollBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="card-soft h-100">
+            <div class="card-head"><span><i class="bi bi-bar-chart-fill me-2 text-warning"></i>Dept. Salary Breakdown</span></div>
+            <div class="card-body-x" id="deptSalaryChart"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ TAB: LEAVE REQUESTS ══════════ -->
+    <div id="tab-leaves" class="d-none">
+      <div class="row g-3">
+        <div class="col-12 col-lg-8">
+          <div class="card-soft">
+            <div class="card-head">
+              <span><i class="bi bi-calendar-x me-2 text-warning"></i>Leave Requests</span>
+              <button class="btn btn-sm btn-primary" id="applyLeaveBtn"><i class="bi bi-plus-lg me-1"></i>Apply Leave</button>
+            </div>
+            <div class="card-body-x p-0" id="leaveList"></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="card-soft mb-3">
+            <div class="card-head"><span>Leave Summary</span></div>
+            <div class="card-body-x" id="leaveSummary"></div>
+          </div>
+          <div class="card-soft">
+            <div class="card-head"><span>Leave Balance</span></div>
+            <div class="card-body-x" id="leaveBalance"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ TAB: ATTENDANCE ══════════ -->
+    <div id="tab-attendance" class="d-none">
+      <div class="row g-3 mb-3" id="attKpi"></div>
+      <div class="row g-3">
+        <div class="col-12 col-lg-8">
+          <div class="card-soft">
+            <div class="card-head">
+              <span><i class="bi bi-calendar-check me-2 text-warning"></i>Staff Attendance — Today</span>
+              <div class="d-flex gap-2">
+                <input type="date" class="form-control form-control-sm" id="attDate" style="width:auto">
+                <button class="btn btn-sm btn-success" id="saveAttBtn"><i class="bi bi-check2 me-1"></i>Save</button>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-modern mb-0">
+                <thead>
+                  <tr>
+                    <th class="ps-3">Staff Member</th>
+                    <th>Department</th>
+                    <th>Present</th>
+                    <th>Absent</th>
+                    <th>Leave</th>
+                  </tr>
+                </thead>
+                <tbody id="attBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="card-soft">
+            <div class="card-head"><span>Monthly Overview</span></div>
+            <div class="card-body-x" id="attMonthly"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ══════ STAFF MODAL (Add / Edit) ══════ -->
+  <div class="modal fade" id="staffModal" tabindex="-1" aria-labelledby="staffModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <form class="modal-content" id="staffForm" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="staffModalTitle">Add Staff</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Full Name *</label><input class="form-control" id="fStaffName" required maxlength="80"></div>
+            <div class="col-md-6"><label class="form-label">Designation *</label>
+              <select class="form-select" id="fDesig" required>
+                <option value="">Select…</option>
+                <option>Principal</option><option>Vice Principal</option><option>Teacher</option>
+                <option>Accountant</option><option>Admin Officer</option><option>Clerk</option><option>Support Staff</option>
+              </select>
+            </div>
+            <div class="col-md-6"><label class="form-label">Department *</label>
+              <select class="form-select" id="fDept" required>
+                <option value="">Select…</option>
+                <option>Academics</option><option>Administration</option><option>Finance</option><option>Operations</option>
+              </select>
+            </div>
+            <div class="col-md-6"><label class="form-label">Subject</label><input class="form-control" id="fSubject" maxlength="40" placeholder="Leave blank if N/A"></div>
+            <div class="col-md-6"><label class="form-label">Gender *</label>
+              <select class="form-select" id="fStaffGender" required><option value="">Select…</option><option>Male</option><option>Female</option></select>
+            </div>
+            <div class="col-md-6"><label class="form-label">Phone *</label><input class="form-control" id="fStaffPhone" required maxlength="15"></div>
+            <div class="col-md-6"><label class="form-label">Email</label><input class="form-control" id="fStaffEmail" type="email" maxlength="80"></div>
+            <div class="col-md-6"><label class="form-label">Join Date *</label><input class="form-control" id="fJoinDate" type="date" required></div>
+            <div class="col-md-6"><label class="form-label">Basic Salary (PKR) *</label><input class="form-control" id="fSalary" type="number" min="0" required></div>
+            <div class="col-md-6"><label class="form-label">Status</label>
+              <select class="form-select" id="fStaffStatus"><option>Active</option><option>On Leave</option><option>Resigned</option></select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit" id="staffSaveBtn">Save Staff</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════ PAYSLIP MODAL ══════ -->
+  <div class="modal fade" id="payslipModal" tabindex="-1" aria-labelledby="payslipTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="payslipTitle">Payslip</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="payslipBody"></div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+          <button class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ LEAVE MODAL ══════ -->
+  <div class="modal fade" id="leaveModal" tabindex="-1" aria-labelledby="leaveModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content" id="leaveForm" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="leaveModalTitle">Apply Leave</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body vstack gap-3">
+          <div><label class="form-label">Staff Member *</label><select class="form-select" id="fLeaveStaff" required><option value="">Select…</option></select></div>
+          <div><label class="form-label">Leave Type *</label>
+            <select class="form-select" id="fLeaveType" required>
+              <option value="">Select…</option><option>Sick Leave</option><option>Casual Leave</option><option>Annual Leave</option><option>Maternity Leave</option>
+            </select>
+          </div>
+          <div class="row g-2">
+            <div class="col"><label class="form-label">From *</label><input class="form-control" id="fLeaveFrom" type="date" required></div>
+            <div class="col"><label class="form-label">To *</label><input class="form-control" id="fLeaveTo" type="date" required></div>
+          </div>
+          <div><label class="form-label">Reason *</label><textarea class="form-control" id="fLeaveReason" rows="2" required maxlength="200"></textarea></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════ STAFF PROFILE OFFCANVAS ══════ -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="staffCanvas" aria-labelledby="staffCanvasLabel" style="width:380px">
+    <div class="offcanvas-header border-bottom">
+      <h5 class="offcanvas-title" id="staffCanvasLabel">Staff Profile</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0" id="staffCanvasBody"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/layout.js"></script>
+  <script src="../assets/js/pages/hr.js"></script>
+</body>
+</html>

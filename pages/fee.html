@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fee Management · Bright School</title>
+  <link rel="icon" href="../assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link id="bs-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/theme.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/print.css" media="print">
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/app.js"></script>
+</head>
+<body data-page="fee" data-title-key="m_fee" data-group="g_finance">
+  <a class="visually-hidden-focusable skip-link" href="#page">Skip to content</a>
+  <main id="page" tabindex="-1">
+    <div class="page-head">
+      <div>
+        <h1 class="h3 mb-1">Fee Management</h1>
+        <p class="text-muted mb-0">Collect, track and report student fees.</p>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-outline-secondary btn-sm" id="btnExport"><i class="bi bi-download me-1"></i>Export CSV</button>
+        <button class="btn btn-outline-secondary btn-sm" id="btnPrintList"><i class="bi bi-printer me-1"></i>Print</button>
+        <button class="btn btn-primary btn-sm" id="btnAddRecord"><i class="bi bi-plus-lg me-1"></i>Add Record</button>
+      </div>
+    </div>
+    <div id="content"></div>
+  </main>
+
+  <!-- ── Add / Edit Fee Record Modal ── -->
+  <div class="modal fade" id="feeModal" tabindex="-1" aria-labelledby="feeModalLabel" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-6" id="feeModalLabel">Add Fee Record</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="feeForm" novalidate>
+            <input type="hidden" id="feeId">
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label fw-semibold">Student <span class="text-danger">*</span></label>
+                <select class="form-select" id="feeStudent" required>
+                  <option value="">— Select student —</option>
+                </select>
+                <div class="invalid-feedback">Please select a student.</div>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Month <span class="text-danger">*</span></label>
+                <input type="month" class="form-control" id="feeMonth" required>
+                <div class="invalid-feedback">Required.</div>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Due Date</label>
+                <input type="date" class="form-control" id="feeDueDate">
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Tuition (Rs)</label>
+                <input type="number" class="form-control" id="feeTuition" min="0" placeholder="0">
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Transport (Rs)</label>
+                <input type="number" class="form-control" id="feeTransport" min="0" placeholder="0">
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Discount (Rs)</label>
+                <input type="number" class="form-control" id="feeDiscount" min="0" placeholder="0">
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Total (Rs)</label>
+                <input type="number" class="form-control bg-body-secondary" id="feeTotal" readonly>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Amount Paid (Rs)</label>
+                <input type="number" class="form-control" id="feePaid" min="0" placeholder="0">
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Payment Method</label>
+                <select class="form-select" id="feeMethod">
+                  <option value="">— None —</option>
+                  <option>Cash</option>
+                  <option>Bank</option>
+                  <option>Online</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Paid On</label>
+                <input type="date" class="form-control" id="feePaidOn">
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Status</label>
+                <select class="form-select" id="feeStatus">
+                  <option>Paid</option>
+                  <option>Partial</option>
+                  <option>Unpaid</option>
+                </select>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" id="feeModalSave"><i class="bi bi-check-lg me-1"></i>Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Challan Print Modal ── -->
+  <div class="modal fade" id="challanModal" tabindex="-1" aria-labelledby="challanModalLabel" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content">
+        <div class="modal-header border-0 pb-0">
+          <h2 class="modal-title fs-6" id="challanModalLabel">Fee Challan</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="challanBody"></div>
+        <div class="modal-footer border-0 pt-0">
+          <button class="btn btn-light btn-sm" data-bs-dismiss="modal">Close</button>
+          <button class="btn btn-primary btn-sm" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="../assets/js/layout.js"></script>
+  <script src="../assets/js/pages/fee.js"></script>
+</body>
+</html>

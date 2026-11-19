@@ -48,3 +48,52 @@ a.kpi:hover { border-color: var(--amber); transform: translateY(-2px); }
 .announce-item h3 { font-size: .92rem; font-weight: 600; margin: 0 0 .15rem; }
 .announce-item p { margin: 0; font-size: .82rem; color: var(--muted); }
 #activityList, #announceList { max-height: 300px; overflow-y: auto; }
+
+/* ---------- fee.html ---------- */
+.fee-chart-box { position: relative; height: 240px; }
+
+.kpi.danger-kpi .ico { background: rgba(220,53,69,.13); color: #B02A37; }
+.kpi.danger-kpi .val { color: #B02A37; }
+
+.fee-head-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .65rem 1.1rem; border-bottom: 1px solid var(--border);
+}
+.fee-head-row:last-child { border-bottom: 0; }
+
+.table-danger-soft { background: rgba(220,53,69,.05) !important; }
+[data-bs-theme="dark"] .table-danger-soft { background: rgba(220,53,69,.1) !important; }
+
+.avatar-xs {
+  width: 30px; height: 30px; border-radius: 50%; background: var(--navy);
+  color: var(--amber); display: inline-grid; place-items: center;
+  font-weight: 700; font-size: .7rem; flex: none;
+}
+[data-bs-theme="dark"] .avatar-xs { background: rgba(232,163,23,.2); color: var(--amber); }
+
+.icon-btn-sm {
+  width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent;
+  color: var(--text); display: inline-flex; align-items: center; justify-content: center;
+  font-size: .9rem; transition: background .12s;
+}
+.icon-btn-sm:hover { background: var(--surface-2); }
+.icon-btn-sm.text-danger:hover { background: rgba(220,53,69,.1); }
+
+.btn-xs { padding: .15rem .45rem; font-size: .75rem; }
+
+/* Challan */
+.challan-wrap { font-size: .85rem; }
+.challan-header { text-align: center; margin-bottom: .5rem; }
+.challan-header strong { display: block; font-size: 1rem; }
+.challan-header small { color: var(--muted); font-size: .75rem; }
+.challan-title { text-align: center; font-weight: 700; letter-spacing: .08em; font-size: .8rem; background: var(--navy); color: var(--amber); padding: .25rem; border-radius: 6px; margin-bottom: .75rem; }
+.challan-table { width: 100%; border-collapse: collapse; }
+.challan-table td { padding: .3rem .1rem; border-bottom: 1px solid var(--border); }
+.challan-table td:last-child { text-align: right; font-weight: 500; }
+.challan-sep td { border-top: 2px solid var(--border); padding-top: .5rem; }
+.challan-total td { font-weight: 700; font-size: 1rem; border-top: 2px solid var(--navy); border-bottom: 2px solid var(--navy); }
+.challan-footer { margin-top: .75rem; font-size: .72rem; color: var(--muted); text-align: center; border-top: 1px dashed var(--border); padding-top: .5rem; }
+
+@media (max-width: 575.98px) {
+  .fee-chart-box { height: 180px; }
+}
