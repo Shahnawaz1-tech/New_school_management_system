@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · Bright School</title>
+  <link rel="icon" href="../assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link id="bs-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/theme.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/app.js"></script>
+</head>
+<!-- data-page="login": layout.js skips the sidebar/top bar on this page -->
+<body data-page="login">
+  <main id="page" class="login">
+    <!-- Brand panel -->
+    <section class="login-brand" aria-label="About Bright School">
+      <div class="d-flex align-items-center gap-3">
+        <img src="../assets/img/logo.svg" width="48" height="48" alt="">
+        <div><strong class="fs-5 d-block">Bright School</strong><small class="text-warning">by Shahzam Solution</small></div>
+      </div>
+      <div class="login-hero">
+        <h1>One place for every classroom, fee and family.</h1>
+        <p>Admissions, attendance, fees, exams and payroll, all in a single school ERP. This is a clickable demo with sample data only.</p>
+      </div>
+      <ul class="login-points list-unstyled mb-0">
+        <li><i class="bi bi-check2-circle"></i>60 sample students, 15 staff</li>
+        <li><i class="bi bi-check2-circle"></i>Fees in PKR with printable challans</li>
+        <li><i class="bi bi-check2-circle"></i>English and Urdu (RTL) menus</li>
+      </ul>
+    </section>
+
+    <!-- Role chooser -->
+    <section class="login-panel">
+      <form id="loginForm" class="login-form" novalidate>
+        <h2 class="h3 fw-bold mb-1">Welcome back</h2>
+        <p class="text-muted mb-4">Choose a role to explore the demo. No password needed.</p>
+
+        <fieldset class="mb-4">
+          <legend class="visually-hidden">Sign in as</legend>
+          <div class="role-grid" id="roleGrid"></div>
+          <div class="invalid-feedback d-block" id="roleError" hidden>Please choose a role to continue.</div>
+        </fieldset>
+
+        <button class="btn btn-warning btn-lg w-100" type="submit" id="goBtn"><i class="bi bi-box-arrow-in-right me-2"></i>Continue to dashboard</button>
+        <p class="small text-muted text-center mt-3 mb-0">Demo data is saved in this browser only. Use “Reset demo data” in the profile menu to start fresh.</p>
+      </form>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/layout.js"></script>
+  <script src="../assets/js/pages/login.js"></script>
+</body>
+</html>

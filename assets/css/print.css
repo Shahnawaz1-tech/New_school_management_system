@@ -1,0 +1,21 @@
+/* ==========================================================================
+   print.css · A4 print stylesheet (challans, receipts, certificates, result cards)
+   Put printable content inside an element with class .print-area
+   ========================================================================== */
+@page { size: A4; margin: 14mm; }
+@media print {
+  html, body { background: #fff !important; color: #000 !important; font-size: 11pt; }
+  .sidebar, .sidebar-backdrop, .topbar, .crumbs, .app-foot, .demo-ribbon, .no-print, .toast-container,
+  .modal-backdrop, .btn, .offcanvas-backdrop { display: none !important; }
+  .app-main { margin: 0 !important; }
+  .content { padding: 0 !important; }
+  .card-soft { box-shadow: none !important; border: 1px solid #ccc !important; }
+  /* When a print-area exists, hide everything else on the page */
+  body.printing-area .content > *:not(.print-area-host) { display: none !important; }
+  .print-area { display: block !important; page-break-inside: avoid; }
+  .print-page-break { page-break-after: always; }
+  a { color: inherit !important; text-decoration: none !important; }
+  .modal.show { position: static !important; display: block !important; overflow: visible !important; }
+  .modal-dialog { max-width: 100% !important; margin: 0 !important; }
+  .modal-content { border: 0 !important; box-shadow: none !important; }
+}

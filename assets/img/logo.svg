@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Bright School logo">
+  <rect width="64" height="64" rx="16" fill="#0B2046"/>
+  <path d="M12 40V22l20-8 20 8v18l-20 8z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M32 14v34M12 22l20 8 20-8" stroke="#fff" stroke-width="3" stroke-linejoin="round" fill="none"/>
+  <circle cx="32" cy="30" r="5.5" fill="#E8A317"/>
+</svg>

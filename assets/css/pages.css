@@ -1,0 +1,50 @@
+/* ==========================================================================
+   pages.css · Page-specific styles (sections are added page by page)
+   ========================================================================== */
+
+/* ---------- login.html ---------- */
+.login { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); min-height: 100vh; }
+.login-brand {
+  background: var(--navy); color: #C5D0EA; padding: 2.5rem 3rem; display: flex; flex-direction: column; justify-content: space-between; gap: 2rem;
+  background-image: radial-gradient(circle at 85% 12%, rgba(232,163,23,.22), transparent 38%);
+}
+.login-brand strong { color: #fff; }
+.login-hero h1 { color: #fff; font-size: clamp(1.8rem, 3.2vw, 2.6rem); font-weight: 700; line-height: 1.15; letter-spacing: -.02em; max-width: 16ch; }
+.login-hero p { max-width: 46ch; margin: 1rem 0 0; }
+.login-points li { display: flex; gap: .6rem; align-items: center; padding-block: .25rem; }
+.login-points i { color: var(--amber); }
+.login-panel { display: grid; place-items: center; padding: 2rem 1.25rem; background: var(--bg); }
+.login-form { width: 100%; max-width: 460px; }
+.role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; }
+.role-card { position: relative; }
+.role-card input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.role-card label {
+  display: flex; flex-direction: column; gap: .35rem; height: 100%; padding: 1rem; border-radius: var(--radius);
+  background: var(--surface); border: 1.5px solid var(--border); cursor: pointer; transition: border-color .15s, box-shadow .15s;
+}
+.role-card label i { font-size: 1.5rem; color: var(--brand); }
+.role-card label strong { font-size: 1rem; }
+.role-card label small { color: var(--muted); line-height: 1.3; }
+.role-card:hover label { border-color: var(--amber); }
+.role-card input:checked + label { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(232,163,23,.25); background: var(--surface-2); }
+.role-card input:focus-visible + label { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+@media (max-width: 860px) {
+  .login { grid-template-columns: 1fr; }
+  .login-brand { padding: 1.5rem; gap: 1.25rem; }
+  .login-points { display: none; }
+  .login-hero h1 { max-width: none; }
+}
+@media (max-width: 400px) { .role-grid { grid-template-columns: 1fr; } }
+
+/* ---------- dashboard.html ---------- */
+.chart-box { position: relative; height: 270px; }
+a.kpi { text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
+a.kpi:hover { border-color: var(--amber); transform: translateY(-2px); }
+.kpi-sub { font-size: .75rem; color: var(--muted); }
+.activity-item, .announce-item { display: flex; gap: .75rem; padding: .65rem 0; border-bottom: 1px solid var(--border); }
+.activity-item:last-child, .announce-item:last-child { border-bottom: 0; }
+.activity-item .ico { width: 34px; height: 34px; border-radius: 10px; background: var(--surface-2); color: var(--brand); display: grid; place-items: center; flex: none; }
+.announce-item h3 { font-size: .92rem; font-weight: 600; margin: 0 0 .15rem; }
+.announce-item p { margin: 0; font-size: .82rem; color: var(--muted); }
+#activityList, #announceList { max-height: 300px; overflow-y: auto; }
