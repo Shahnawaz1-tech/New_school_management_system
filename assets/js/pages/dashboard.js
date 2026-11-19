@@ -28,7 +28,7 @@
     const attDates = Object.keys(db.attendance).sort();
 
     // Parent sees one child only (S-1003, or the first student if that record was deleted)
-    const child = db.students.find((s) => s.id === 'S-1003') || db.students[0];
+    const child = db.students.find((s) => s.id === 'S-1003') || db.students[0] || { id: '', name: 'No linked student', cls: '—', section: '', rollNo: '—' };
 
     /* ---------- Role configuration ---------- */
     const kpi = (icon, value, label, href, sub = '', amber = false) =>
@@ -70,7 +70,7 @@
       const mine = db.attendance, days = attDates.map((d) => mine[d] && mine[d][child.id]).filter(Boolean);
       const rec = cur.find((f) => f.studentId === child.id), exam = db.marks.E1[child.id];
       const examPct = exam ? Math.round(Object.values(exam).reduce((a, b) => a + b, 0) / (db.subjects.length)) : null;
-      subline = `Showing ${child.name} · ${child.cls}-${child.section}`;
+      subline = child.id ? `Showing ${child.name} · ${child.cls}-${child.section}` : 'No student is linked to this parent account yet.';
       show.cls = false;
       kpis = [
         kpi('bi-calendar-check-fill', pct(days.filter((x) => x === 'P').length, days.length) + '%', 'Attendance (30 days)', 'attendance.html', '', true),
@@ -97,11 +97,11 @@
     setTimeout(() => (kpiRow.innerHTML = kpis.join('')), 450);
 
     /* ---------- Charts ---------- */
-    setTimeout(() => {
+    function drawCharts() {
       if (!window.Chart) { document.querySelectorAll('.chart-box').forEach((b) => (b.innerHTML = BS.empty('bi-wifi-off', 'Charts need internet', 'Chart.js loads from a CDN. Connect and reload.'))); return; }
 
       // 1) Monthly fee collection (billed vs collected). Parent: only their child's records.
-      const months = [...new Set(db.feeRecords.map((f) => f.month))].sort();
+      const months = [...new Set(db.feeRecords.map((f) => f.month))].sort().slice(-Number($('feeRange').value || 6));
       const feeScope = role === 'parent' ? db.feeRecords.filter((f) => f.studentId === child.id) : db.feeRecords;
       BS.charts.make('feeChart', (c) => ({
         type: 'bar',
@@ -138,7 +138,23 @@
         data: { labels: db.classes.map((k) => k.name.replace('Class ', 'C')), datasets: [{ label: 'Students', data: db.classes.map((k) => db.students.filter((s) => s.cls === k.name).length), backgroundColor: c.navy, borderRadius: 6 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: BS.charts.scales(c, { ticks: { color: c.text, precision: 0 } }) }
       }));
-    }, 500);
+    }
+    setTimeout(drawCharts, 500);
+    $('feeRange').addEventListener('change', drawCharts);
+    $('exportDashboard').addEventListener('click', () => {
+      const months = [...new Set(db.feeRecords.map(f => f.month))].sort();
+      const rows = [['Month', 'Billed (Rs)', 'Collected (Rs)', 'Collection rate']];
+      months.forEach(month => {
+        const records = role === 'parent' ? db.feeRecords.filter(f => f.studentId === child.id && f.month === month) : db.feeRecords.filter(f => f.month === month);
+        const total = records.reduce((sum, f) => sum + Number(f.total || 0), 0);
+        const paid = records.reduce((sum, f) => sum + Number(f.paid || 0), 0);
+        rows.push([month, total, paid, total ? `${Math.round(paid / total * 100)}%` : '0%']);
+      });
+      const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+      BS.download(`dashboard-summary-${BS.todayISO()}.csv`, csv, 'text/csv;charset=utf-8');
+      BS.toast('Dashboard summary downloaded', 'success');
+    });
+    $('printDashboard').addEventListener('click', () => BS.print());
 
     /* ---------- Recent activity ---------- */
     BS.loading($('activityList'), () => {

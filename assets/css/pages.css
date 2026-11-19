@@ -102,3 +102,9 @@ a.kpi:hover { border-color: var(--amber); transform: translateY(-2px); }
 .col-xl-2-4 { flex: 0 0 auto; width: 20%; }
 @media (max-width: 1199.98px) { .col-xl-2-4 { width: 50%; } }
 @media (max-width: 575.98px)  { .col-xl-2-4 { width: 100%; } }
+
+/* ---------- settings.html ---------- */
+.theme-opt { cursor: pointer; transition: border-color .15s, background .15s; user-select: none; }
+.theme-opt:hover { border-color: var(--amber) !important; }
+.nav-tabs .nav-link { font-size: .875rem; }
+#subjectChips .badge { font-size: .82rem; font-weight: 500; }
