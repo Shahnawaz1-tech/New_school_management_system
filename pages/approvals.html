@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Approvals · Bright School</title>
+  <link rel="icon" href="../assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link id="bs-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/theme.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/print.css" media="print">
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <style>
+    /* ── Approvals page ── */
+    .ap-tabs .nav-link {
+      border-radius: 10px; font-weight: 500; color: var(--muted);
+      padding: .45rem 1.1rem; transition: background .15s, color .15s;
+    }
+    .ap-tabs .nav-link.active { background: var(--amber); color: var(--navy); font-weight: 600; }
+    .ap-tabs .nav-link:hover:not(.active) { background: var(--surface-2); color: var(--text); }
+    .ap-tabs .nav-link .badge-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; border-radius: 99px; font-size: .65rem;
+      font-weight: 700; padding: 0 .35rem; margin-inline-start: .4rem;
+    }
+
+    /* Request card */
+    .req-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem 1.1rem;
+      transition: box-shadow .18s, transform .18s, border-color .18s;
+      position: relative; overflow: hidden;
+    }
+    .req-card:hover { box-shadow: 0 6px 24px rgba(11,32,70,.1); transform: translateY(-2px); border-color: var(--amber); }
+    .req-card::before {
+      content: ''; position: absolute; inset-block: 0; inset-inline-start: 0;
+      width: 4px; border-radius: 4px 0 0 4px;
+    }
+    .req-card.pending::before  { background: var(--amber); }
+    .req-card.approved::before { background: #2ec4b6; }
+    .req-card.rejected::before { background: #e63946; }
+
+    .req-type-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: grid; place-items: center; font-size: 1.15rem; flex: none;
+    }
+
+    /* Timeline */
+    .timeline { position: relative; padding-inline-start: 1.5rem; }
+    .timeline::before {
+      content: ''; position: absolute; inset-block: 0; inset-inline-start: .45rem;
+      width: 2px; background: var(--border); border-radius: 2px;
+    }
+    .tl-item { position: relative; padding-bottom: 1.25rem; }
+    .tl-item:last-child { padding-bottom: 0; }
+    .tl-dot {
+      position: absolute; inset-inline-start: -1.5rem; top: .2rem;
+      width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--surface);
+      box-shadow: 0 0 0 2px var(--border);
+    }
+    .tl-dot.pending  { background: var(--amber); box-shadow: 0 0 0 2px rgba(232,163,23,.3); }
+    .tl-dot.approved { background: #2ec4b6;      box-shadow: 0 0 0 2px rgba(46,196,182,.3); }
+    .tl-dot.rejected { background: #e63946;      box-shadow: 0 0 0 2px rgba(230,57,70,.3); }
+    .tl-dot.new      { background: #4361ee;      box-shadow: 0 0 0 2px rgba(67,97,238,.3); }
+
+    /* Stats ring */
+    .ring-wrap { position: relative; width: 72px; height: 72px; flex: none; }
+    .ring-wrap svg { transform: rotate(-90deg); }
+    .ring-wrap .ring-val { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 700; font-size: .9rem; }
+
+    /* Animated counter */
+    @keyframes countUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .kpi-anim { animation: countUp .4s ease both; }
+
+    /* Priority badge */
+    .priority-high   { background: rgba(230,57,70,.12);  color: #c1121f; }
+    .priority-medium { background: rgba(255,159,28,.15); color: #c77700; }
+    .priority-low    { background: rgba(46,196,182,.12); color: #0a9396; }
+    [data-bs-theme="dark"] .priority-high   { color: #ff8fa3; }
+    [data-bs-theme="dark"] .priority-medium { color: #ffd166; }
+    [data-bs-theme="dark"] .priority-low    { color: #80ffdb; }
+
+    /* Bulk action bar */
+    #apBulkBar {
+      background: var(--navy); color: #fff; border-radius: 12px;
+      padding: .6rem 1rem; gap: .75rem; align-items: center;
+    }
+
+    /* Hover action buttons */
+    .req-actions { opacity: 0; transition: opacity .15s; }
+    .req-card:hover .req-actions { opacity: 1; }
+
+    /* Approval detail offcanvas */
+    .detail-head {
+      background: var(--navy); color: #fff;
+      padding: 1.25rem; border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .detail-row {
+      display: flex; gap: .5rem; align-items: flex-start;
+      font-size: .85rem; padding: .4rem 0; border-bottom: 1px solid var(--border);
+    }
+    .detail-row:last-child { border-bottom: 0; }
+    .detail-row i { color: var(--amber); width: 18px; text-align: center; margin-top: 2px; }
+
+    /* Search highlight */
+    mark { background: rgba(232,163,23,.35); color: inherit; border-radius: 3px; padding: 0 2px; }
+
+    /* Empty state icon pulse */
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    .empty-state i { animation: pulse 2.5s ease infinite; }
+
+    /* KPI card hover */
+    .kpi-card { transition: transform .18s, box-shadow .18s; }
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(11,32,70,.12); }
+
+    /* Drag-to-reorder handle */
+    .drag-handle { cursor: grab; color: var(--muted); opacity: .4; }
+    .drag-handle:hover { opacity: .9; }
+
+    /* Progress bar */
+    .progress-bar { transition: width 1s ease; }
+
+    /* btn-xs */
+    .btn-xs { padding: .15rem .45rem; font-size: .72rem; line-height: 1.4; border-radius: 5px; }
+
+    /* Animated row entrance */
+    @keyframes rowIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .req-card { animation: rowIn .25s ease both; }
+  </style>
+</head>
+<body data-page="approvals" data-title-key="m_approvals" data-group="g_workflow">
+  <a class="visually-hidden-focusable skip-link" href="#page">Skip to content</a>
+
+  <main id="page" tabindex="-1">
+
+    <!-- Page head -->
+    <div class="page-head">
+      <div>
+        <h1 class="h3 mb-1">Approvals</h1>
+        <p class="text-muted mb-0">Review, approve or reject pending requests from staff and management.</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <button class="btn btn-outline-secondary" id="exportBtn"><i class="bi bi-download me-1"></i>Export CSV</button>
+        <button class="btn btn-warning" id="newRequestBtn"><i class="bi bi-plus-lg me-1"></i>New Request</button>
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div class="row g-3 mb-3" id="apKpi"></div>
+
+    <!-- Filters + search -->
+    <div class="card-soft mb-3 p-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-sm-6 col-lg-4">
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="search" class="form-control border-start-0" id="apSearch" placeholder="Search title, type, requester…">
+          </div>
+        </div>
+        <div class="col-6 col-sm-3 col-lg-2">
+          <select class="form-select" id="filterType"><option value="">All Types</option></select>
+        </div>
+        <div class="col-6 col-sm-3 col-lg-2">
+          <select class="form-select" id="filterPriority">
+            <option value="">All Priorities</option>
+            <option>High</option><option>Medium</option><option>Low</option>
+          </select>
+        </div>
+        <div class="col-6 col-sm-3 col-lg-2">
+          <input type="date" class="form-control" id="filterDate" title="Filter by date">
+        </div>
+        <div class="col-6 col-sm-3 col-lg-2">
+          <button class="btn btn-outline-secondary w-100" id="clearFilters"><i class="bi bi-x-lg me-1"></i>Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bulk action bar -->
+    <div class="d-none mb-2" id="apBulkBar">
+      <i class="bi bi-check2-square"></i>
+      <span id="apBulkCount">0 selected</span>
+      <button class="btn btn-sm btn-success ms-auto" id="bulkApprove"><i class="bi bi-check-lg me-1"></i>Approve All</button>
+      <button class="btn btn-sm btn-danger" id="bulkReject"><i class="bi bi-x-lg me-1"></i>Reject All</button>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav ap-tabs gap-1 mb-3 flex-wrap" id="apTabNav" role="tablist">
+      <li class="nav-item"><button class="nav-link active" data-tab="all"><i class="bi bi-grid me-1"></i>All<span class="badge-count bg-secondary text-white" id="cnt-all">0</span></button></li>
+      <li class="nav-item"><button class="nav-link" data-tab="pending"><i class="bi bi-hourglass-split me-1"></i>Pending<span class="badge-count" style="background:var(--amber);color:var(--navy)" id="cnt-pending">0</span></button></li>
+      <li class="nav-item"><button class="nav-link" data-tab="approved"><i class="bi bi-check-circle me-1"></i>Approved<span class="badge-count bg-success text-white" id="cnt-approved">0</span></button></li>
+      <li class="nav-item"><button class="nav-link" data-tab="rejected"><i class="bi bi-x-circle me-1"></i>Rejected<span class="badge-count bg-danger text-white" id="cnt-rejected">0</span></button></li>
+    </ul>
+
+    <!-- Main content: cards + sidebar -->
+    <div class="row g-3">
+      <!-- Request cards -->
+      <div class="col-12 col-xl-8">
+        <div id="apList"></div>
+        <div class="d-flex justify-content-center mt-3">
+          <ul class="pagination pagination-sm mb-0" id="apPagination"></ul>
+        </div>
+      </div>
+
+      <!-- Right sidebar -->
+      <div class="col-12 col-xl-4">
+        <!-- Approval rate donut -->
+        <div class="card-soft mb-3">
+          <div class="card-head"><span><i class="bi bi-pie-chart-fill me-2 text-warning"></i>Approval Rate</span></div>
+          <div class="card-body-x">
+            <div class="d-flex align-items-center gap-3" id="rateChart"></div>
+          </div>
+        </div>
+
+        <!-- Type breakdown -->
+        <div class="card-soft mb-3">
+          <div class="card-head"><span><i class="bi bi-bar-chart-fill me-2 text-warning"></i>By Type</span></div>
+          <div class="card-body-x" id="typeBreakdown"></div>
+        </div>
+
+        <!-- Activity timeline -->
+        <div class="card-soft">
+          <div class="card-head"><span><i class="bi bi-clock-history me-2 text-warning"></i>Recent Activity</span></div>
+          <div class="card-body-x" id="apTimeline"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ══════ NEW REQUEST MODAL ══════ -->
+  <div class="modal fade" id="requestModal" tabindex="-1" aria-labelledby="requestModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <form class="modal-content" id="requestForm" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="requestModalTitle">New Approval Request</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Request Type *</label>
+              <select class="form-select" id="fType" required>
+                <option value="">Select type…</option>
+                <option>Fee Discount</option><option>Fee Waiver</option><option>Leave</option>
+                <option>Purchase</option><option>Event Budget</option><option>Transfer Certificate</option>
+                <option>Salary Advance</option><option>Other</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Priority *</label>
+              <select class="form-select" id="fPriority" required>
+                <option value="">Select…</option>
+                <option>High</option><option>Medium</option><option>Low</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Title / Subject *</label>
+              <input class="form-control" id="fTitle" required maxlength="120" placeholder="Brief description of the request">
+              <div class="invalid-feedback">Please enter a title.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Requested By *</label>
+              <select class="form-select" id="fBy" required><option value="">Select staff…</option></select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Amount (PKR)</label>
+              <input class="form-control" id="fAmount" type="number" min="0" placeholder="Leave blank if N/A">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Details / Justification</label>
+              <textarea class="form-control" id="fDetails" rows="3" maxlength="400" placeholder="Provide supporting details…"></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Date *</label>
+              <input class="form-control" id="fDate" type="date" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Deadline</label>
+              <input class="form-control" id="fDeadline" type="date">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit" id="requestSaveBtn">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══════ DETAIL OFFCANVAS ══════ -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="detailCanvas" aria-labelledby="detailCanvasLabel" style="width:400px">
+    <div class="offcanvas-header border-bottom">
+      <h5 class="offcanvas-title" id="detailCanvasLabel">Request Details</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0" id="detailCanvasBody"></div>
+  </div>
+
+  <!-- ══════ REMARK MODAL ══════ -->
+  <div class="modal fade" id="remarkModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <form class="modal-content" id="remarkForm">
+        <div class="modal-header">
+          <h2 class="modal-title fs-6" id="remarkTitle">Add Remark</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label">Remark (optional)</label>
+          <textarea class="form-control" id="fRemark" rows="3" maxlength="200" placeholder="Add a note for the requester…"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn" type="submit" id="remarkConfirmBtn">Confirm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/layout.js"></script>
+  <script src="../assets/js/pages/approvals.js"></script>
+</body>
+</html>
