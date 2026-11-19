@@ -52,8 +52,8 @@
     <div class="row g-3">
       <div class="col-12 col-lg-4" id="cardCls">
         <section class="card-soft h-100" aria-labelledby="clsTitle">
-          <div class="card-head"><span id="clsTitle">Class strength</span><a class="btn btn-sm btn-outline-primary" href="students.html">Students</a></div>
-          <div class="card-body-x"><div class="chart-box"><canvas id="clsChart" role="img" aria-label="Bar chart of students per class"></canvas></div></div>
+          <div class="card-head flex-wrap gap-2"><div><span id="clsTitle">Class &amp; section overview</span><small class="d-block text-muted" id="sectionSummary"></small></div><div class="d-flex gap-2 align-items-center"><label class="visually-hidden" for="classSectionFilter">Filter by class</label><select class="form-select form-select-sm w-auto" id="classSectionFilter"><option value="all">All classes</option></select><a class="btn btn-sm btn-outline-primary" href="settings.html">Manage</a></div></div>
+          <div class="card-body-x p-0 section-overview-scroll"><table class="table table-modern mb-0"><thead><tr><th>Class / Section</th><th class="text-center">Students</th><th class="text-center">Present</th><th class="text-end">Monthly fee</th></tr></thead><tbody id="classSectionBody"></tbody></table></div>
         </section>
       </div>
       <div class="col-12 col-lg-4" id="cardAct">

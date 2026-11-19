@@ -42,6 +42,8 @@
 a.kpi { text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
 a.kpi:hover { border-color: var(--amber); transform: translateY(-2px); }
 .kpi-sub { font-size: .75rem; color: var(--muted); }
+.section-overview-scroll { max-height: 300px; overflow: auto; }
+.section-overview-scroll thead th { position: sticky; top: 0; z-index: 1; background: var(--surface); }
 .activity-item, .announce-item { display: flex; gap: .75rem; padding: .65rem 0; border-bottom: 1px solid var(--border); }
 .activity-item:last-child, .announce-item:last-child { border-bottom: 0; }
 .activity-item .ico { width: 34px; height: 34px; border-radius: 10px; background: var(--surface-2); color: var(--brand); display: grid; place-items: center; flex: none; }

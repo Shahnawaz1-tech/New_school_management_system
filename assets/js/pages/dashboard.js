@@ -91,6 +91,29 @@
     row3.forEach((el) => (el.className = `col-12 col-lg-${12 / row3.length}`));
     if (role === 'parent') { $('feeTitle').textContent = `${child.name.split(' ')[0]}'s fees`; $('attTitle').textContent = 'Attendance by week'; }
 
+    /* ---------- Class and section overview ---------- */
+    const classFilter = $('classSectionFilter');
+    classFilter.insertAdjacentHTML('beforeend', db.classes.map(c => `<option value="${BS.esc(c.name)}">${BS.esc(c.name)}</option>`).join(''));
+    const sectionGroups = new Map();
+    db.classes.forEach(c => {
+      const sections = new Set([String(c.section || 'A').trim() || 'A']);
+      db.students.filter(s => s.cls === c.name).forEach(s => sections.add(String(s.section || 'A').trim() || 'A'));
+      sections.forEach(section => sectionGroups.set(`${c.name}\u0000${section}`, { cls: c.name, section, fee: Number(c.fee) || 0 }));
+    });
+    const renderClassSections = () => {
+      const selected = classFilter.value;
+      const groups = [...sectionGroups.values()].filter(g => selected === 'all' || g.cls === selected);
+      $('sectionSummary').textContent = `${db.classes.length} classes · ${sectionGroups.size} sections`;
+      $('classSectionBody').innerHTML = groups.map(g => {
+        const students = db.students.filter(s => s.cls === g.cls && String(s.section || 'A').trim() === g.section);
+        const markedInSection = students.filter(s => todayAtt[s.id]);
+        const presentInSection = markedInSection.filter(s => todayAtt[s.id] === 'P').length;
+        return `<tr><td class="fw-semibold">${BS.esc(g.cls)} <span class="text-muted fw-normal">· ${BS.esc(g.section)}</span></td><td class="text-center">${students.length}</td><td class="text-center">${markedInSection.length ? `${presentInSection}/${markedInSection.length}` : '<span class="text-muted">—</span>'}</td><td class="text-end">${BS.pkr(g.fee)}</td></tr>`;
+      }).join('') || '<tr><td colspan="4" class="text-center text-muted py-4">No classes or sections found.</td></tr>';
+    };
+    classFilter.addEventListener('change', renderClassSections);
+    renderClassSections();
+
     /* ---------- KPI cards with skeleton ---------- */
     const kpiRow = $('kpiRow');
     kpiRow.innerHTML = kpis.map(() => '<div class="col-12 col-sm-6 col-xl"><div class="card-soft kpi"><div class="skeleton-block w-100" style="height:46px"></div></div></div>').join('');
@@ -132,12 +155,6 @@
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: BS.charts.scales(c, { min: 60, max: 100, ticks: { color: c.text, callback: (v) => v + '%' } }) }
       }));
 
-      // 3) Class strength (live count from the students table)
-      BS.charts.make('clsChart', (c) => ({
-        type: 'bar',
-        data: { labels: db.classes.map((k) => k.name.replace('Class ', 'C')), datasets: [{ label: 'Students', data: db.classes.map((k) => db.students.filter((s) => s.cls === k.name).length), backgroundColor: c.navy, borderRadius: 6 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: BS.charts.scales(c, { ticks: { color: c.text, precision: 0 } }) }
-      }));
     }
     setTimeout(drawCharts, 500);
     $('feeRange').addEventListener('change', drawCharts);
