@@ -125,6 +125,7 @@
             <div class="d-flex flex-wrap gap-2 align-items-center">
               <select id="marksExam"    class="form-select form-select-sm" style="width:200px" aria-label="Select exam"></select>
               <select id="marksClass"   class="form-select form-select-sm" style="width:140px" aria-label="Select class"></select>
+              <select id="marksSection" class="form-select form-select-sm" style="width:120px" aria-label="Select section"></select>
               <select id="marksSubject" class="form-select form-select-sm" style="width:160px" aria-label="Select subject"></select>
               <div class="position-relative">
                 <i class="bi bi-search position-absolute" style="left:.7rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem"></i>
@@ -137,6 +138,7 @@
               <span id="entryProgressLabel">0 / 0 entered</span>
               <span id="entryProgressPct">0%</span>
             </div>
+            <div id="marksContextBanner" class="mt-2 px-3 py-2 rounded-2 small fw-500" style="background:rgba(232,163,23,.12);color:var(--text);display:none"></div>
           </div>
           <div class="table-responsive">
             <table class="table table-modern mb-0" id="marksTable" aria-label="Marks entry table">
@@ -144,14 +146,19 @@
               <tbody id="marksBody"></tbody>
             </table>
           </div>
+          <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top no-print" id="marksPaginationWrap">
+            <span class="small text-muted" id="marksPageInfo"></span>
+            <ul class="pagination pagination-sm mb-0" id="marksPagination"></ul>
+          </div>
         </div>
 
         <!-- ══ TAB 2: Results ══ -->
         <div class="tab-pane fade" id="tabResults" role="tabpanel">
           <div class="card-body-x border-bottom no-print">
             <div class="d-flex flex-wrap gap-2 align-items-center">
-              <select id="resExam"  class="form-select form-select-sm" style="width:200px" aria-label="Select exam for results"></select>
-              <select id="resClass" class="form-select form-select-sm" style="width:140px" aria-label="Select class for results"></select>
+              <select id="resExam"     class="form-select form-select-sm" style="width:200px" aria-label="Select exam for results"></select>
+              <select id="resClass"    class="form-select form-select-sm" style="width:140px" aria-label="Select class for results"></select>
+              <select id="resSection"  class="form-select form-select-sm" style="width:120px" aria-label="Select section for results"></select>
               <div class="position-relative">
                 <i class="bi bi-search position-absolute" style="left:.7rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem"></i>
                 <input type="search" id="resSearch" class="form-control form-control-sm ps-4" placeholder="Search student…" style="width:180px" autocomplete="off">
@@ -176,14 +183,19 @@
               <tbody id="resultsBody"></tbody>
             </table>
           </div>
+          <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top no-print" id="resPaginationWrap">
+            <span class="small text-muted" id="resPageInfo"></span>
+            <ul class="pagination pagination-sm mb-0" id="resPagination"></ul>
+          </div>
         </div>
 
         <!-- ══ TAB 3: Analytics ══ -->
         <div class="tab-pane fade" id="tabCharts" role="tabpanel">
           <div class="card-body-x border-bottom no-print">
             <div class="d-flex flex-wrap gap-2">
-              <select id="chartExam"  class="form-select form-select-sm" style="width:200px" aria-label="Select exam for charts"></select>
-              <select id="chartClass" class="form-select form-select-sm" style="width:140px" aria-label="Select class for charts"></select>
+              <select id="chartExam"    class="form-select form-select-sm" style="width:200px" aria-label="Select exam for charts"></select>
+              <select id="chartClass"   class="form-select form-select-sm" style="width:140px" aria-label="Select class for charts"></select>
+              <select id="chartSection" class="form-select form-select-sm" style="width:120px" aria-label="Select section for charts"></select>
             </div>
           </div>
           <div class="card-body-x">

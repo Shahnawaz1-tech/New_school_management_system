@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Timetable · Bright School</title>
+  <link rel="icon" href="../assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link id="bs-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/theme.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/print.css" media="print">
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <style>
+    /* ── Subject colour chips ── */
+    .sub-chip { display:inline-flex; align-items:center; gap:.3rem; padding:.15rem .55rem; border-radius:99px; font-size:.72rem; font-weight:600; white-space:nowrap; }
+
+    /* ── Timetable grid ── */
+    .tt-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .tt-table { border-collapse:separate; border-spacing:0; width:100%; min-width:700px; }
+    .tt-table th, .tt-table td { padding:0; border:1px solid var(--border); }
+    .tt-table thead th { background:var(--surface-2); font-size:.75rem; font-weight:600; color:var(--muted); text-align:center; padding:.55rem .4rem; white-space:nowrap; }
+    .tt-table thead th.day-head { background:var(--navy); color:#fff; font-size:.8rem; letter-spacing:.02em; }
+    .tt-table tbody td.period-label { background:var(--surface-2); font-size:.75rem; font-weight:600; color:var(--muted); text-align:center; padding:.5rem .6rem; white-space:nowrap; min-width:72px; }
+
+    /* ── Cell ── */
+    .tt-cell {
+      position:relative; min-height:72px; min-width:110px; padding:.5rem .55rem;
+      cursor:pointer; transition:background .13s, transform .13s;
+      display:flex; flex-direction:column; justify-content:center; gap:.18rem;
+    }
+    .tt-cell:hover { background:rgba(232,163,23,.09); transform:scale(1.015); z-index:2; }
+    .tt-cell.break-cell { background:var(--surface-2); cursor:default; justify-content:center; align-items:center; }
+    .tt-cell.break-cell:hover { transform:none; background:var(--surface-2); }
+    .tt-cell .cell-sub { font-weight:700; font-size:.82rem; color:var(--text); }
+    .tt-cell .cell-teacher { font-size:.72rem; color:var(--muted); }
+    .tt-cell .cell-edit { position:absolute; top:4px; right:4px; opacity:0; transition:opacity .13s; background:var(--surface); border:1px solid var(--border); border-radius:6px; width:22px; height:22px; display:grid; place-items:center; font-size:.7rem; color:var(--muted); }
+    .tt-cell:hover .cell-edit { opacity:1; }
+    .tt-cell.empty-cell { background:repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,.025) 6px, rgba(0,0,0,.025) 7px); }
+
+    /* ── Today highlight ── */
+    .tt-table thead th.today-col { background:var(--amber); color:var(--navy); }
+    .tt-table td.today-col { background:rgba(232,163,23,.06); }
+
+    /* ── View toggle ── */
+    .view-btn { border:1px solid var(--border); background:var(--surface); color:var(--muted); padding:.35rem .85rem; border-radius:8px; font-size:.82rem; font-weight:500; cursor:pointer; transition:all .15s; }
+    .view-btn.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+
+    /* ── Period badge ── */
+    .period-time { font-size:.68rem; color:var(--muted); display:block; }
+
+    /* ── Teacher workload bar ── */
+    .workload-bar { height:6px; border-radius:99px; background:var(--surface-2); overflow:hidden; margin-top:.3rem; }
+    .workload-fill { height:100%; border-radius:99px; background:var(--amber); transition:width .4s ease; }
+
+    /* ── Now indicator ── */
+    .now-badge { display:inline-flex; align-items:center; gap:.35rem; background:rgba(21,115,71,.12); color:#157347; border-radius:99px; padding:.2rem .7rem; font-size:.78rem; font-weight:600; }
+    [data-bs-theme="dark"] .now-badge { background:rgba(111,211,160,.12); color:#6FD3A0; }
+
+    /* ── Conflict badge ── */
+    .conflict-badge { position:absolute; top:3px; left:3px; width:8px; height:8px; border-radius:50%; background:#B02A37; }
+
+    /* ── Stats strip ── */
+    .stat-chip { display:flex; flex-direction:column; align-items:center; padding:.6rem 1rem; border-radius:12px; background:var(--surface-2); min-width:80px; }
+    .stat-chip .sv { font-size:1.2rem; font-weight:700; }
+    .stat-chip .sl { font-size:.7rem; color:var(--muted); }
+
+    /* ── Modal cell selector ── */
+    .sub-option { display:flex; align-items:center; gap:.6rem; padding:.5rem .75rem; border-radius:10px; cursor:pointer; transition:background .12s; }
+    .sub-option:hover { background:var(--surface-2); }
+    .sub-option.selected { background:rgba(232,163,23,.15); }
+
+    /* ── Print ── */
+    @media print {
+      .no-print { display:none !important; }
+      .tt-cell { min-height:50px; }
+      .tt-cell .cell-edit { display:none; }
+    }
+    @media (max-width:575px) {
+      .tt-cell { min-width:80px; min-height:58px; }
+      .tt-cell .cell-teacher { display:none; }
+    }
+  </style>
+</head>
+<body data-page="timetable" data-title-key="m_timetable" data-group="g_academics">
+  <a class="visually-hidden-focusable skip-link" href="#page">Skip to content</a>
+
+  <main id="page" tabindex="-1">
+
+    <!-- ── Page header ── -->
+    <div class="page-head">
+      <div>
+        <h1 class="h3 mb-1">Timetable</h1>
+        <p class="text-muted mb-0" id="ttSubline">Loading…</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2 no-print">
+        <button class="btn btn-outline-secondary btn-sm" id="printBtn"><i class="bi bi-printer me-1"></i>Print</button>
+        <button class="btn btn-outline-secondary btn-sm" id="exportBtn"><i class="bi bi-download me-1"></i>Export CSV</button>
+        <button class="btn btn-primary btn-sm" id="autoFillBtn"><i class="bi bi-magic me-1"></i>Auto-Fill</button>
+      </div>
+    </div>
+
+    <!-- ── KPI strip ── -->
+    <div class="row g-3 mb-3" id="ttKpi"></div>
+
+    <!-- ── Controls ── -->
+    <div class="card-soft mb-3 no-print">
+      <div class="card-body-x">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+
+          <!-- View toggle -->
+          <div class="d-flex gap-1">
+            <button class="view-btn active" id="viewClass" aria-pressed="true"><i class="bi bi-people me-1"></i>Class View</button>
+            <button class="view-btn" id="viewTeacher" aria-pressed="false"><i class="bi bi-person-badge me-1"></i>Teacher View</button>
+          </div>
+
+          <!-- Selectors -->
+          <select id="classSelect" class="form-select form-select-sm" style="width:160px" aria-label="Select class"></select>
+          <select id="sectionSelect" class="form-select form-select-sm" style="width:120px" aria-label="Select section"></select>
+          <select id="teacherSelect" class="form-select form-select-sm d-none" style="width:200px" aria-label="Select teacher"></select>
+
+          <!-- Now indicator -->
+          <div id="nowIndicator" class="ms-auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Conflict alert ── -->
+    <div id="conflictAlert" class="alert alert-danger d-flex align-items-center gap-2 mb-3 no-print d-none" role="alert">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span id="conflictMsg"></span>
+    </div>
+
+    <!-- ── Timetable grid ── -->
+    <div class="card-soft mb-3">
+      <div class="card-head">
+        <span class="fw-600" id="ttGridTitle">Class Timetable</span>
+        <div class="d-flex gap-2 align-items-center no-print" id="subjectLegend"></div>
+      </div>
+      <div class="tt-wrap">
+        <table class="tt-table" id="ttGrid" aria-label="Timetable grid"></table>
+      </div>
+    </div>
+
+    <!-- ── Teacher workload ── -->
+    <div class="card-soft mb-3 no-print" id="workloadCard">
+      <div class="card-head"><span class="fw-600"><i class="bi bi-bar-chart me-2"></i>Teacher Workload</span></div>
+      <div class="card-body-x" id="workloadBody"></div>
+    </div>
+
+  </main>
+
+  <!-- ══ Edit Cell Modal ══ -->
+  <div class="modal fade" id="cellModal" tabindex="-1" aria-labelledby="cellModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="cellModalTitle">Edit Period</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-600 small">Day &amp; Period</label>
+            <div id="cellInfo" class="text-muted small"></div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-600 small">Subject</label>
+            <div id="subjectOptions" class="d-flex flex-column gap-1"></div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-600 small" for="teacherPick">Teacher</label>
+            <select class="form-select" id="teacherPick" aria-label="Pick teacher"></select>
+          </div>
+          <div id="conflictWarning" class="alert alert-warning d-none py-2 small"><i class="bi bi-exclamation-triangle me-1"></i><span id="conflictWarnMsg"></span></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-danger btn-sm me-auto" id="clearCellBtn"><i class="bi bi-x-circle me-1"></i>Clear Period</button>
+          <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" id="saveCellBtn">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/layout.js"></script>
+  <script src="../assets/js/pages/timetable.js"></script>
+</body>
+</html>
