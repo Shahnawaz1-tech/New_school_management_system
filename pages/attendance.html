@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Attendance · Bright School</title>
+  <link rel="icon" href="../assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link id="bs-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/theme.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/print.css" media="print">
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <style>
+    /* ── KPI progress ring ── */
+    .ring-wrap { position:relative; width:64px; height:64px; flex:none; }
+    .ring-wrap svg { transform:rotate(-90deg); }
+    .ring-bg  { fill:none; stroke:var(--surface-2); stroke-width:6; }
+    .ring-val { fill:none; stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset .6s ease; }
+    .ring-label { position:absolute; inset:0; display:grid; place-items:center; font-size:.78rem; font-weight:700; line-height:1; }
+
+    /* ── Attendance toggle buttons ── */
+    .att-btn-group { display:inline-flex; border-radius:8px; overflow:hidden; border:1px solid var(--border); }
+    .att-btn { border:0; background:var(--surface-2); color:var(--muted); padding:.22rem .55rem; font-size:.78rem; font-weight:600; cursor:pointer; transition:background .12s,color .12s; }
+    .att-btn:hover { background:var(--border); }
+    .att-btn.P { background:#157347; color:#fff; }
+    .att-btn.A { background:#B02A37; color:#fff; }
+    .att-btn.L { background:#0A58CA; color:#fff; }
+    [data-bs-theme="dark"] .att-btn.P { background:#1a9e5e; }
+    [data-bs-theme="dark"] .att-btn.A { background:#c0392b; }
+    [data-bs-theme="dark"] .att-btn.L { background:#2563eb; }
+
+    /* ── Student row ── */
+    .att-row { display:flex; align-items:center; gap:.75rem; padding:.55rem .9rem; border-bottom:1px solid var(--border); transition:background .1s; }
+    .att-row:last-child { border-bottom:0; }
+    .att-row:hover { background:var(--surface-2); }
+    .att-avatar { width:34px; height:34px; border-radius:50%; display:inline-grid; place-items:center; font-weight:700; font-size:.72rem; flex:none; }
+    .att-avatar.male   { background:rgba(11,32,70,.12); color:var(--navy); }
+    .att-avatar.female { background:rgba(232,163,23,.18); color:#8A5F00; }
+    [data-bs-theme="dark"] .att-avatar.male   { background:rgba(76,116,217,.22); color:#8FB0FF; }
+    [data-bs-theme="dark"] .att-avatar.female { background:rgba(232,163,23,.18); color:#F5C56A; }
+    .att-name { flex:1; min-width:0; }
+    .att-name strong { display:block; font-size:.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .att-name small  { color:var(--muted); font-size:.75rem; }
+
+    /* ── Calendar heatmap ── */
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+    .cal-day-label { font-size:.68rem; color:var(--muted); text-align:center; font-weight:600; padding-bottom:2px; }
+    .cal-cell { aspect-ratio:1; border-radius:6px; display:grid; place-items:center; font-size:.7rem; font-weight:600; cursor:default; transition:transform .1s; }
+    .cal-cell:hover { transform:scale(1.15); }
+    .cal-cell.empty  { background:transparent; }
+    .cal-cell.future { background:var(--surface-2); color:var(--muted); }
+    .cal-cell.sunday { background:var(--surface-2); color:var(--muted); opacity:.5; }
+    .cal-cell.p100   { background:#157347; color:#fff; }
+    .cal-cell.p90    { background:#28a745; color:#fff; }
+    .cal-cell.p75    { background:#ffc107; color:#000; }
+    .cal-cell.p50    { background:#fd7e14; color:#fff; }
+    .cal-cell.p0     { background:#dc3545; color:#fff; }
+    .cal-cell.today  { outline:2px solid var(--amber); outline-offset:1px; }
+
+    /* ── Trend chart box ── */
+    .att-chart-box { position:relative; height:200px; }
+
+    /* ── Absentee list ── */
+    .absent-item { display:flex; align-items:center; gap:.65rem; padding:.5rem 0; border-bottom:1px solid var(--border); }
+    .absent-item:last-child { border-bottom:0; }
+
+    /* ── Report offcanvas ── */
+    .report-bar { display:flex; height:12px; border-radius:99px; overflow:hidden; gap:2px; margin:.4rem 0 .2rem; }
+    .report-bar span { border-radius:99px; transition:width .4s ease; }
+
+    /* ── Tab nav override ── */
+    .att-tabs .nav-link { color:var(--muted); border:0; border-bottom:2px solid transparent; border-radius:0; padding:.5rem 1rem; font-weight:500; }
+    .att-tabs .nav-link.active { color:var(--text); border-bottom-color:var(--amber); background:transparent; }
+    .att-tabs .nav-link:hover:not(.active) { color:var(--text); background:var(--surface-2); }
+
+    @media print {
+      .no-print { display:none !important; }
+      .att-row { break-inside:avoid; }
+    }
+    @media (max-width:575px) {
+      .att-row { padding:.45rem .6rem; }
+      .att-name strong { font-size:.82rem; }
+    }
+  </style>
+</head>
+<body data-page="attendance" data-title-key="m_attendance" data-group="g_academics">
+  <a class="visually-hidden-focusable skip-link" href="#page">Skip to content</a>
+
+  <main id="page" tabindex="-1">
+
+    <!-- ── Page header ── -->
+    <div class="page-head">
+      <div>
+        <h1 class="h3 mb-1">Attendance</h1>
+        <p class="text-muted mb-0" id="attSubline">Loading…</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2 no-print">
+        <button class="btn btn-outline-secondary btn-sm" id="exportAttBtn"><i class="bi bi-download me-1"></i>Export CSV</button>
+        <button class="btn btn-outline-secondary btn-sm" id="printBtn"><i class="bi bi-printer me-1"></i>Print</button>
+      </div>
+    </div>
+
+    <!-- ── KPI strip ── -->
+    <div class="row g-3 mb-3" id="attKpi"></div>
+
+    <!-- ── Main two-column layout ── -->
+    <div class="row g-3">
+
+      <!-- LEFT: Mark attendance panel -->
+      <div class="col-12 col-xl-7">
+        <div class="card-soft h-100">
+          <div class="card-head no-print">
+            <span class="fw-600">Mark Attendance</span>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <input type="date" id="attDate" class="form-control form-control-sm" style="width:150px">
+              <select id="attClass" class="form-select form-select-sm" style="width:140px" aria-label="Select class"></select>
+              <button class="btn btn-sm btn-success" id="markAllP" title="Mark all Present"><i class="bi bi-check-all me-1"></i>All P</button>
+              <button class="btn btn-sm btn-danger"  id="markAllA" title="Mark all Absent"><i class="bi bi-x-lg me-1"></i>All A</button>
+              <button class="btn btn-sm btn-primary" id="saveAttBtn"><i class="bi bi-floppy me-1"></i>Save</button>
+            </div>
+          </div>
+
+          <!-- Search inside class -->
+          <div class="px-3 pt-2 pb-1 no-print">
+            <div class="position-relative">
+              <i class="bi bi-search position-absolute" style="left:.8rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.85rem"></i>
+              <input type="search" id="attSearch" class="form-control form-control-sm ps-4" placeholder="Search student…" autocomplete="off">
+            </div>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="px-3 py-2 no-print" id="markProgress" style="display:none">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+              <span id="progressLabel">0 / 0 marked</span>
+              <span id="progressPct">0%</span>
+            </div>
+            <div class="progress" style="height:6px">
+              <div class="progress-bar bg-success" id="progressBar" style="width:0%"></div>
+            </div>
+          </div>
+
+          <!-- Student list -->
+          <div id="attList" style="max-height:520px;overflow-y:auto" aria-label="Student attendance list">
+            <div class="p-3"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+          </div>
+
+          <!-- Print header (hidden on screen) -->
+          <div class="d-none d-print-block p-3">
+            <h2 id="printTitle" class="h5"></h2>
+            <p id="printMeta" class="text-muted small"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Analytics panel -->
+      <div class="col-12 col-xl-5">
+        <div class="vstack gap-3">
+
+          <!-- Tabs: Calendar | Trend | Absentees -->
+          <div class="card-soft">
+            <div class="card-head p-0 border-bottom-0">
+              <ul class="nav att-tabs w-100 px-2 pt-1" id="rightTabs" role="tablist">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabCalendar" role="tab">Calendar</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabTrend" role="tab">Trend</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabAbsent" role="tab">Absentees</button></li>
+              </ul>
+            </div>
+            <div class="tab-content card-body-x">
+
+              <!-- Calendar heatmap -->
+              <div class="tab-pane fade show active" id="tabCalendar" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <button class="btn btn-sm btn-outline-secondary" id="calPrev"><i class="bi bi-chevron-left"></i></button>
+                  <strong id="calMonthLabel" class="small"></strong>
+                  <button class="btn btn-sm btn-outline-secondary" id="calNext"><i class="bi bi-chevron-right"></i></button>
+                </div>
+                <div class="cal-grid" id="calGrid"></div>
+                <div class="d-flex gap-3 mt-3 flex-wrap" style="font-size:.72rem">
+                  <span><span class="cal-cell p100 d-inline-block" style="width:14px;height:14px;vertical-align:middle"></span> 100%</span>
+                  <span><span class="cal-cell p90  d-inline-block" style="width:14px;height:14px;vertical-align:middle"></span> ≥90%</span>
+                  <span><span class="cal-cell p75  d-inline-block" style="width:14px;height:14px;vertical-align:middle"></span> ≥75%</span>
+                  <span><span class="cal-cell p50  d-inline-block" style="width:14px;height:14px;vertical-align:middle"></span> ≥50%</span>
+                  <span><span class="cal-cell p0   d-inline-block" style="width:14px;height:14px;vertical-align:middle"></span> &lt;50%</span>
+                </div>
+              </div>
+
+              <!-- Trend chart -->
+              <div class="tab-pane fade" id="tabTrend" role="tabpanel">
+                <div class="att-chart-box"><canvas id="trendChart" role="img" aria-label="Attendance trend line chart"></canvas></div>
+              </div>
+
+              <!-- Absentees today -->
+              <div class="tab-pane fade" id="tabAbsent" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="small fw-600">Absent / Leave today</span>
+                  <span class="pill pill-danger" id="absentCount">0</span>
+                </div>
+                <div id="absentList" style="max-height:280px;overflow-y:auto"></div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Class-wise summary table -->
+          <div class="card-soft">
+            <div class="card-head"><span class="fw-600">Class Summary — <span id="summaryDateLabel"></span></span></div>
+            <div class="card-body-x p-0">
+              <div class="table-responsive">
+                <table class="table table-modern mb-0 small" id="summaryTable">
+                  <thead><tr>
+                    <th class="ps-3">Class</th>
+                    <th>Total</th>
+                    <th>Present</th>
+                    <th>Absent</th>
+                    <th>Leave</th>
+                    <th>Unmarked</th>
+                    <th class="pe-3">%</th>
+                  </tr></thead>
+                  <tbody id="summaryBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Student Report Offcanvas ── -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="reportCanvas" aria-labelledby="reportCanvasTitle" style="width:360px">
+    <div class="offcanvas-header border-bottom">
+      <h5 class="offcanvas-title" id="reportCanvasTitle">Attendance Report</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body" id="reportBody"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/layout.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="../assets/js/charts.js"></script>
+  <script src="../assets/js/pages/attendance.js"></script>
+</body>
+</html>

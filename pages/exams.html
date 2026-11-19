@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exams · Bright School</title>
+  <link rel="icon" href="../assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link id="bs-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/theme.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/print.css" media="print">
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <style>
+    /* ── Exam cards ── */
+    .exam-card { border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow); padding: 1.1rem 1.2rem; transition: border-color .15s, transform .15s; cursor: pointer; }
+    .exam-card:hover { border-color: var(--amber); transform: translateY(-2px); }
+    .exam-card.active-exam { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(232,163,23,.18); }
+    .exam-card .exam-dates { font-size: .78rem; color: var(--muted); }
+    .exam-card .exam-name { font-weight: 700; font-size: 1rem; margin-bottom: .25rem; }
+    .exam-card .exam-actions { opacity: 0; transition: opacity .15s; }
+    .exam-card:hover .exam-actions { opacity: 1; }
+
+    /* ── Marks table ── */
+    .marks-input { width: 68px; text-align: center; padding: .25rem .4rem; font-size: .85rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: border-color .15s; }
+    .marks-input:focus { outline: none; border-color: var(--amber); box-shadow: 0 0 0 .2rem rgba(232,163,23,.25); }
+    .marks-input.is-invalid { border-color: #B02A37; background: rgba(176,42,55,.06); }
+    .marks-input.is-valid   { border-color: #157347; }
+    .marks-row td { vertical-align: middle; padding: .45rem .6rem; }
+    .marks-row:hover { background: var(--surface-2); }
+
+    /* ── Grade badge ── */
+    .grade { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; font-weight: 700; font-size: .82rem; }
+    .grade-A { background: rgba(21,115,71,.15); color: #157347; }
+    .grade-B { background: rgba(13,110,253,.12); color: #0A58CA; }
+    .grade-C { background: rgba(232,163,23,.2);  color: #8A5F00; }
+    .grade-D { background: rgba(253,126,20,.18); color: #c45e00; }
+    .grade-F { background: rgba(176,42,55,.13);  color: #B02A37; }
+    [data-bs-theme="dark"] .grade-A { color: #6FD3A0; }
+    [data-bs-theme="dark"] .grade-B { color: #8FB4FF; }
+    [data-bs-theme="dark"] .grade-C { color: #F5C56A; }
+    [data-bs-theme="dark"] .grade-F { color: #FF8C96; }
+
+    /* ── Result offcanvas ── */
+    .result-subject-row { display: flex; align-items: center; justify-content: space-between; padding: .45rem 0; border-bottom: 1px solid var(--border); font-size: .88rem; }
+    .result-subject-row:last-child { border-bottom: 0; }
+    .result-bar-wrap { width: 80px; height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+    .result-bar { height: 100%; border-radius: 99px; transition: width .5s ease; }
+
+    /* ── Topper card ── */
+    .topper-card { display: flex; align-items: center; gap: .75rem; padding: .75rem 1rem; border-radius: 12px; background: var(--surface-2); }
+    .topper-avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: .82rem; background: rgba(232,163,23,.22); color: #8A5F00; flex: none; }
+    [data-bs-theme="dark"] .topper-avatar { color: #F5C56A; }
+
+    /* ── Chart boxes ── */
+    .exam-chart-box { position: relative; height: 220px; }
+
+    /* ── Tab nav ── */
+    .exam-tabs .nav-link { color: var(--muted); border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: .5rem 1rem; font-weight: 500; font-size: .9rem; }
+    .exam-tabs .nav-link.active { color: var(--text); border-bottom-color: var(--amber); background: transparent; }
+    .exam-tabs .nav-link:hover:not(.active) { color: var(--text); background: var(--surface-2); }
+
+    /* ── Progress bar in marks entry ── */
+    .entry-progress { height: 5px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: .35rem; }
+    .entry-progress-bar { height: 100%; background: var(--amber); border-radius: 99px; transition: width .3s; }
+
+    @media print {
+      .no-print { display: none !important; }
+      .marks-row { break-inside: avoid; }
+    }
+    @media (max-width: 575px) {
+      .exam-card { padding: .85rem; }
+      .marks-input { width: 56px; }
+    }
+  </style>
+</head>
+<body data-page="exams" data-title-key="m_exams" data-group="g_academics">
+  <a class="visually-hidden-focusable skip-link" href="#page">Skip to content</a>
+
+  <main id="page" tabindex="-1">
+
+    <!-- ── Page header ── -->
+    <div class="page-head">
+      <div>
+        <h1 class="h3 mb-1">Exams & Results</h1>
+        <p class="text-muted mb-0" id="examSubline">Loading…</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2 no-print">
+        <button class="btn btn-outline-secondary btn-sm" id="exportResultBtn"><i class="bi bi-download me-1"></i>Export Results</button>
+        <button class="btn btn-outline-secondary btn-sm" id="printBtn"><i class="bi bi-printer me-1"></i>Print</button>
+        <button class="btn btn-primary btn-sm" id="addExamBtn"><i class="bi bi-plus-lg me-1"></i>Add Exam</button>
+      </div>
+    </div>
+
+    <!-- ── KPI strip ── -->
+    <div class="row g-3 mb-3" id="examKpi"></div>
+
+    <!-- ── Exam cards row ── -->
+    <div class="card-soft mb-3 no-print">
+      <div class="card-head"><span class="fw-600">All Exams</span><span class="text-muted small" id="examCardCount"></span></div>
+      <div class="card-body-x">
+        <div class="row g-3" id="examCards"></div>
+      </div>
+    </div>
+
+    <!-- ── Main panel (tabs) ── -->
+    <div class="card-soft">
+      <div class="card-head p-0 border-bottom-0">
+        <ul class="nav exam-tabs w-100 px-2 pt-1 no-print" id="examTabs" role="tablist">
+          <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabMarks"   role="tab"><i class="bi bi-pencil-square me-1"></i>Marks Entry</button></li>
+          <li class="nav-item"><button class="nav-link"        data-bs-toggle="tab" data-bs-target="#tabResults" role="tab"><i class="bi bi-trophy me-1"></i>Results</button></li>
+          <li class="nav-item"><button class="nav-link"        data-bs-toggle="tab" data-bs-target="#tabCharts"  role="tab"><i class="bi bi-bar-chart me-1"></i>Analytics</button></li>
+        </ul>
+      </div>
+
+      <div class="tab-content">
+
+        <!-- ══ TAB 1: Marks Entry ══ -->
+        <div class="tab-pane fade show active" id="tabMarks" role="tabpanel">
+          <div class="card-body-x border-bottom no-print">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <select id="marksExam"    class="form-select form-select-sm" style="width:200px" aria-label="Select exam"></select>
+              <select id="marksClass"   class="form-select form-select-sm" style="width:140px" aria-label="Select class"></select>
+              <select id="marksSubject" class="form-select form-select-sm" style="width:160px" aria-label="Select subject"></select>
+              <div class="position-relative">
+                <i class="bi bi-search position-absolute" style="left:.7rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem"></i>
+                <input type="search" id="marksSearch" class="form-control form-control-sm ps-4" placeholder="Search student…" style="width:180px" autocomplete="off">
+              </div>
+              <button class="btn btn-sm btn-primary ms-auto" id="saveMarksBtn"><i class="bi bi-floppy me-1"></i>Save Marks</button>
+            </div>
+            <div class="entry-progress mt-2"><div class="entry-progress-bar" id="entryProgressBar" style="width:0%"></div></div>
+            <div class="d-flex justify-content-between mt-1" style="font-size:.75rem;color:var(--muted)">
+              <span id="entryProgressLabel">0 / 0 entered</span>
+              <span id="entryProgressPct">0%</span>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-modern mb-0" id="marksTable" aria-label="Marks entry table">
+              <thead id="marksHead"></thead>
+              <tbody id="marksBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ══ TAB 2: Results ══ -->
+        <div class="tab-pane fade" id="tabResults" role="tabpanel">
+          <div class="card-body-x border-bottom no-print">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <select id="resExam"  class="form-select form-select-sm" style="width:200px" aria-label="Select exam for results"></select>
+              <select id="resClass" class="form-select form-select-sm" style="width:140px" aria-label="Select class for results"></select>
+              <div class="position-relative">
+                <i class="bi bi-search position-absolute" style="left:.7rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem"></i>
+                <input type="search" id="resSearch" class="form-control form-control-sm ps-4" placeholder="Search student…" style="width:180px" autocomplete="off">
+              </div>
+            </div>
+          </div>
+          <!-- Toppers strip -->
+          <div class="card-body-x border-bottom no-print" id="toppersStrip"></div>
+          <!-- Results table -->
+          <div class="table-responsive">
+            <table class="table table-modern mb-0" id="resultsTable" aria-label="Results table">
+              <thead><tr>
+                <th class="ps-3">Rank</th>
+                <th>Student</th>
+                <th>Class</th>
+                <th id="resSubjectCols"></th>
+                <th>Total</th>
+                <th>%</th>
+                <th>Grade</th>
+                <th class="pe-3">Result</th>
+              </tr></thead>
+              <tbody id="resultsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ══ TAB 3: Analytics ══ -->
+        <div class="tab-pane fade" id="tabCharts" role="tabpanel">
+          <div class="card-body-x border-bottom no-print">
+            <div class="d-flex flex-wrap gap-2">
+              <select id="chartExam"  class="form-select form-select-sm" style="width:200px" aria-label="Select exam for charts"></select>
+              <select id="chartClass" class="form-select form-select-sm" style="width:140px" aria-label="Select class for charts"></select>
+            </div>
+          </div>
+          <div class="card-body-x">
+            <div class="row g-3">
+              <div class="col-12 col-lg-7">
+                <div class="fw-600 small mb-2">Subject-wise Class Average</div>
+                <div class="exam-chart-box"><canvas id="subjectChart" role="img" aria-label="Bar chart of subject averages"></canvas></div>
+              </div>
+              <div class="col-12 col-lg-5">
+                <div class="fw-600 small mb-2">Grade Distribution</div>
+                <div class="exam-chart-box"><canvas id="gradeChart" role="img" aria-label="Donut chart of grade distribution"></canvas></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ══ Add / Edit Exam Modal ══ -->
+  <div class="modal fade" id="examModal" tabindex="-1" aria-labelledby="examModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content" id="examForm" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="examModalTitle">Add Exam</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body row g-3">
+          <div class="col-12">
+            <label class="form-label" for="fExamName">Exam Name <span class="text-danger">*</span></label>
+            <input class="form-control" id="fExamName" required maxlength="80" placeholder="e.g. Mid-Term 2026">
+            <div class="invalid-feedback">Please enter exam name.</div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="fExamStart">Start Date <span class="text-danger">*</span></label>
+            <input class="form-control" id="fExamStart" type="date" required>
+            <div class="invalid-feedback">Please select start date.</div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="fExamEnd">End Date <span class="text-danger">*</span></label>
+            <input class="form-control" id="fExamEnd" type="date" required>
+            <div class="invalid-feedback">Please select end date.</div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="fExamTotal">Total Marks <span class="text-danger">*</span></label>
+            <input class="form-control" id="fExamTotal" type="number" min="1" max="1000" value="100" required>
+            <div class="invalid-feedback">Please enter total marks.</div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="fExamStatus">Status</label>
+            <select class="form-select" id="fExamStatus">
+              <option>Upcoming</option>
+              <option>Ongoing</option>
+              <option>Completed</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="examSaveBtn">Save Exam</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ Student Result Offcanvas ══ -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="resultCanvas" aria-labelledby="resultCanvasTitle" style="width:380px">
+    <div class="offcanvas-header border-bottom">
+      <h5 class="offcanvas-title" id="resultCanvasTitle">Result Card</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body" id="resultBody"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/layout.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="../assets/js/charts.js"></script>
+  <script src="../assets/js/pages/exams.js"></script>
+</body>
+</html>
