@@ -273,6 +273,7 @@
     Object.assign(attendance[selDate], draft);
     draft = {};
     BS.save();
+    BS.audit('Saved attendance', 'Attendance', `${selDate}/${selClass}`, 'Updated student attendance for selected class');
     BS.toast(`Attendance saved for ${selClass} on ${BS.fmtDate(selDate)}.`, 'success');
     renderKpi();
     renderSummary();

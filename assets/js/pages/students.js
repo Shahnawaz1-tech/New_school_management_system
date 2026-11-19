@@ -325,6 +325,7 @@
     }
 
     BS.save();
+    BS.audit(editingId ? 'Updated student' : 'Added student', 'Student', editingId || payload.id, payload.name);
     stuModal.hide();
     renderKpi();
     render();
@@ -338,6 +339,7 @@
     if (!ok) return;
     db.students = students = students.filter((x) => x.id !== id);
     BS.save();
+    BS.audit('Deleted student', 'Student', id, s.name);
     BS.toast(`${s.name} deleted.`, 'danger');
     renderKpi();
     render();
@@ -351,6 +353,7 @@
     if (!ok) return;
     db.students = students = students.filter((s) => !ids.includes(s.id));
     BS.save();
+    BS.audit('Bulk deleted students', 'Student', ids.join(', '), `${ids.length} student records`);
     BS.toast(`${ids.length} student(s) deleted.`, 'danger');
     document.getElementById('checkAll').checked = false;
     updateBulkBar();

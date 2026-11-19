@@ -38,7 +38,9 @@
     admin: '*',
     teacher: ['dashboard', 'students', 'attendance', 'exams', 'timetable', 'mentor-ai', 'settings'],
     accountant: ['dashboard', 'students', 'fee', 'approvals', 'mentor-ai', 'settings'],
-    parent: ['dashboard', 'attendance', 'fee', 'exams', 'timetable', 'settings']
+    // Until child-scoped detail views are implemented, keep the demo parent
+    // role on its child-scoped dashboard to avoid exposing school-wide records.
+    parent: ['dashboard']
   };
 
   document.addEventListener('DOMContentLoaded', init);
@@ -103,7 +105,7 @@
                 <i class="bi bi-chevron-down small text-muted profile-meta"></i></button>
               <ul class="dropdown-menu dropdown-menu-end">
                 <li><h6 class="dropdown-header">${BS.esc(BS.user.name)} · ${BS.esc(BS.user.title)}</h6></li>
-                <li><a class="dropdown-item" href="settings.html"><i class="bi bi-gear me-2"></i>${BS.t('myProfile')}</a></li>
+                ${role !== 'parent' ? `<li><a class="dropdown-item" href="settings.html"><i class="bi bi-gear me-2"></i>${BS.t('myProfile')}</a></li>` : ''}
                 <li><a class="dropdown-item" href="login.html"><i class="bi bi-arrow-left-right me-2"></i>${BS.t('switchRole')}</a></li>
                 <li><button class="dropdown-item" id="resetBtn"><i class="bi bi-arrow-counterclockwise me-2"></i>${BS.t('reset')}</button></li>
                 <li><hr class="dropdown-divider"></li>
@@ -172,7 +174,7 @@
     document.getElementById('logoutBtn').addEventListener('click', () => { BS.ui.set('role', null); location.href = 'login.html'; });
 
     /* Role guard: if this role cannot open the page, tell them and go home */
-    if (!allowed(pageId)) { BS.toast('This page is not available for the ' + BS.user.label + ' role', 'warning'); setTimeout(() => (location.href = 'dashboard.html'), 1200); }
+    if (!allowed(pageId)) { BS.toast('This page is not available for the ' + BS.user.label + ' role', 'warning'); setTimeout(() => location.replace('dashboard.html'), 900); return; }
 
     document.dispatchEvent(new CustomEvent('bs:ready'));
   }

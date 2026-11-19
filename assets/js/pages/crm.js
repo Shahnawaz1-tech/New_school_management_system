@@ -165,6 +165,7 @@
           const old = lead.stage;
           lead.stage = stage;
           BS.save();
+          BS.audit('Moved admission lead', 'Lead', id, `${lead.child}: ${old} to ${stage}`);
           logActivity('bi-arrow-right-circle', `${lead.child} moved from "${old}" → "${stage}"`, 'amber');
           BS.toast(`${lead.child} moved to "${stage}"`, 'success');
           renderAll();
@@ -437,6 +438,7 @@
       const next = stages[idx + 1];
       l.stage = next;
       BS.save();
+      BS.audit('Advanced admission lead', 'Lead', id, `${l.child} to ${next}`);
       logActivity('bi-arrow-right-circle', `${l.child} advanced to "${next}"`, 'green');
       BS.toast(`${l.child} → ${next}`, 'success');
       renderAll();
@@ -451,6 +453,7 @@
     if (!ok) return;
     db.leads = leads = leads.filter(x => x.id !== id);
     BS.save();
+    BS.audit('Deleted admission lead', 'Lead', id, l.child);
     logActivity('bi-trash', `Lead deleted: ${l.child}`, '');
     BS.toast(`Lead for ${l.child} deleted`, 'danger');
     renderAll();
@@ -478,6 +481,7 @@
         const l = leads.find(x => x.id === editingId);
         Object.assign(l, data);
         BS.save();
+        BS.audit('Updated admission lead', 'Lead', editingId, data.child);
         logActivity('bi-pencil', `Lead updated: ${data.child}`, 'blue');
         BS.toast(`Lead for ${data.child} updated`, 'success');
       } else {
@@ -485,6 +489,7 @@
         leads.push(newLead);
         db.leads = leads;
         BS.save();
+        BS.audit('Added admission lead', 'Lead', newLead.id, data.child);
         logActivity('bi-person-plus', `New lead added: ${data.child}`, 'amber');
         BS.toast(`Lead for ${data.child} added`, 'success');
       }

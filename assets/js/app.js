@@ -25,9 +25,22 @@
     if (cache) return cache;
     try { cache = JSON.parse(store.get(DB_KEY)); } catch (e) { cache = null; }
     if (!cache || cache.version !== 1) { cache = BS.seed(); BS.save(); }
+    // Additive migrations keep existing browser demo data usable as the demo grows.
+    ['payrollPayments', 'auditLog', 'parentLinks'].forEach((key) => {
+      if (!cache[key]) cache[key] = key === 'payrollPayments' ? {} : [];
+    });
+    if (!cache.parentLinks.length && cache.students.some(student => student.id === 'S-1003')) {
+      cache.parentLinks.push({ id: 'P-1001', name: 'Tariq Mehmood', studentIds: ['S-1003', 'S-1013'].filter(id => cache.students.some(student => student.id === id)) });
+    }
     return cache;
   };
   BS.save = () => store.set(DB_KEY, JSON.stringify(cache));
+  BS.audit = function (action, entity, entityId, details = '') {
+    const db = BS.db();
+    db.auditLog.push({ id: `AUD-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, time: new Date().toISOString(), actor: BS.user?.name || 'Demo user', role: BS.role || 'unknown', action, entity, entityId: String(entityId ?? ''), details: String(details).slice(0, 240) });
+    if (db.auditLog.length > 500) db.auditLog.splice(0, db.auditLog.length - 500);
+    BS.save();
+  };
   BS.reset = function () {
     store.del(DB_KEY); cache = null;
     BS.toast('Demo data reset. Reloading…', 'success');

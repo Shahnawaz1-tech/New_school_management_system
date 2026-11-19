@@ -51,6 +51,10 @@
         transport: rnd() < 0.3, discountPct: rnd() < 0.08 ? 10 : 0, status: 'Active'
       });
     }
+    // Demonstration family account: two linked children, as a real parent portal expects.
+    students[2].fatherName = 'Tariq Mehmood';
+    students[12].fatherName = 'Tariq Mehmood';
+    const parentLinks = [{ id: 'P-1001', name: 'Tariq Mehmood', studentIds: [students[2].id, students[12].id] }];
 
     // ---- fee records: last 6 months, one record per student per month ----
     const months = Array.from({ length: 6 }, (_, k) => monthKey(new Date(now.getFullYear(), now.getMonth() - (5 - k), 1)));
@@ -191,6 +195,6 @@
       bankName: 'Meezan Bank', accountTitle: 'Bright School', accountNo: '0123-4567890-01', dueDay: 10, lateFine: 200
     };
 
-    return { version: 1, settings, classes, feeHeads, students, feeRecords, attendance, staff, subjects, exams, marks, stages, leads, leaves, approvals, days, periods, timetable, announcements, activity, notifications, currentMonth: curMonth };
+    return { version: 1, settings, classes, feeHeads, students, feeRecords, attendance, staff, subjects, exams, marks, stages, leads, leaves, approvals, days, periods, timetable, announcements, activity, notifications, parentLinks, payrollPayments: {}, auditLog: [], currentMonth: curMonth };
   };
 })();

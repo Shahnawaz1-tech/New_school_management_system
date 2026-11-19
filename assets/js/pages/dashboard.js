@@ -27,8 +27,11 @@
     const classesPending = db.classes.filter((c) => !db.students.some((s) => s.cls === c.name && todayAtt[s.id])).length;
     const attDates = Object.keys(db.attendance).sort();
 
-    // Parent sees one child only (S-1003, or the first student if that record was deleted)
-    const child = db.students.find((s) => s.id === 'S-1003') || db.students[0] || { id: '', name: 'No linked student', cls: '—', section: '', rollNo: '—' };
+    // Parent dashboard is scoped to students linked to the demo parent account.
+    const parentLink = (db.parentLinks || []).find(link => link.id === 'P-1001');
+    const parentChildren = (parentLink?.studentIds || ['S-1003']).map(id => db.students.find(s => s.id === id)).filter(Boolean);
+    const preferredChildId = BS.ui.get('parentStudentId', parentChildren[0]?.id || '');
+    const child = parentChildren.find(s => s.id === preferredChildId) || parentChildren[0] || { id: '', name: 'No linked student', cls: '—', section: '', rollNo: '—' };
 
     /* ---------- Role configuration ---------- */
     const kpi = (icon, value, label, href, sub = '', amber = false) =>
@@ -73,15 +76,17 @@
       subline = child.id ? `Showing ${child.name} · ${child.cls}-${child.section}` : 'No student is linked to this parent account yet.';
       show.cls = false;
       kpis = [
-        kpi('bi-calendar-check-fill', pct(days.filter((x) => x === 'P').length, days.length) + '%', 'Attendance (30 days)', 'attendance.html', '', true),
-        kpi('bi-cash-coin', BS.pkr(rec ? rec.total - rec.paid : 0), 'Fee due this month', 'fee.html', rec ? rec.status : ''),
-        kpi('bi-journal-text', examPct !== null ? examPct + '%' : '—', 'First Term result', 'exams.html'),
-        kpi('bi-mortarboard-fill', `${child.cls}-${child.section}`, 'Class', 'timetable.html', `Roll no. ${child.rollNo}`)
+        kpi('bi-calendar-check-fill', pct(days.filter((x) => x === 'P').length, days.length) + '%', 'Attendance (30 days)', '#cardAtt', '', true),
+        kpi('bi-cash-coin', BS.pkr(rec ? rec.total - rec.paid : 0), 'Fee due this month', '#cardFee', rec ? rec.status : ''),
+        kpi('bi-journal-text', examPct !== null ? examPct + '%' : '—', 'First Term result', '#kpiRow'),
+        kpi('bi-mortarboard-fill', `${child.cls}-${child.section}`, 'Class', '#kpiRow', `Roll no. ${child.rollNo}`)
       ];
-      quick = [['fee.html', 'bi-receipt', 'View fee challan'], ['exams.html', 'bi-journal-text', 'Result card']];
+      quick = [];
     }
     $('subline').textContent = subline;
-    $('quickActions').innerHTML = quick.map((q, i) => `<a class="btn ${i === 0 ? 'btn-warning' : 'btn-outline-primary'}" href="${q[0]}"><i class="bi ${q[1]} me-1"></i>${q[2]}</a>`).join('');
+    $('quickActions').innerHTML = quick.map((q, i) => `<a class="btn ${i === 0 ? 'btn-warning' : 'btn-outline-primary'}" href="${q[0]}"><i class="bi ${q[1]} me-1"></i>${q[2]}</a>`).join('') + (role === 'parent' && parentChildren.length > 1
+      ? `<label class="visually-hidden" for="parentChildSelect">Select child</label><select class="form-select w-auto" id="parentChildSelect" aria-label="Select child">${parentChildren.map(s => `<option value="${BS.esc(s.id)}" ${s.id === child.id ? 'selected' : ''}>${BS.esc(s.name)} · ${BS.esc(s.cls)}-${BS.esc(s.section)}</option>`).join('')}</select>` : '');
+    $('parentChildSelect')?.addEventListener('change', e => { BS.ui.set('parentStudentId', e.target.value); location.reload(); });
 
     /* Hide cards this role does not use and re-balance column widths */
     if (!show.fee) $('cardFee').remove(); if (!show.att) $('cardAtt').remove(); if (!show.cls) $('cardCls').remove();
@@ -90,6 +95,7 @@
     const row3 = ['cardCls', 'cardAct', 'cardAnn'].map($).filter(Boolean);
     row3.forEach((el) => (el.className = `col-12 col-lg-${12 / row3.length}`));
     if (role === 'parent') { $('feeTitle').textContent = `${child.name.split(' ')[0]}'s fees`; $('attTitle').textContent = 'Attendance by week'; }
+    if (role === 'parent') { $('feeOpenLink').remove(); $('attOpenLink').remove(); $('cardAct').remove(); }
 
     /* ---------- Class and section overview ---------- */
     const classFilter = $('classSectionFilter');
@@ -194,7 +200,8 @@
     annBox.addEventListener('click', async (e) => {
       const b = e.target.closest('[data-del]'); if (!b) return;
       if (await BS.confirm('This announcement will be removed for everyone.', { title: 'Delete announcement?', ok: 'Delete', danger: true })) {
-        db.announcements = db.announcements.filter((a) => a.id !== b.dataset.del); BS.save(); renderAnn(); BS.toast('Announcement deleted', 'success');
+        const removed = db.announcements.find(a => a.id === b.dataset.del);
+        db.announcements = db.announcements.filter((a) => a.id !== b.dataset.del); BS.save(); BS.audit('Deleted announcement', 'Announcement', b.dataset.del, removed?.title || ''); renderAnn(); BS.toast('Announcement deleted', 'success');
       }
     });
 
@@ -203,9 +210,10 @@
     form.addEventListener('submit', (e) => {
       e.preventDefault(); form.classList.add('was-validated');
       if (!form.checkValidity()) return;
-      db.announcements.unshift({ id: BS.nextId('AN', db.announcements, 1), title: $('annTitleIn').value.trim(), text: $('annTextIn').value.trim(), tag: $('annTagIn').value, date: BS.todayISO() });
+      const announcement = { id: BS.nextId('AN', db.announcements, 1), title: $('annTitleIn').value.trim(), text: $('annTextIn').value.trim(), tag: $('annTagIn').value, date: BS.todayISO() };
+      db.announcements.unshift(announcement);
       db.activity.unshift({ icon: 'bi-megaphone', text: `Announcement published: ${$('annTitleIn').value.trim()}`, time: new Date().toISOString() });
-      BS.save(); bootstrap.Modal.getInstance(modalEl).hide(); renderAnn();
+      BS.save(); BS.audit('Published announcement', 'Announcement', announcement.id, announcement.title); bootstrap.Modal.getInstance(modalEl).hide(); renderAnn();
       $('activityList').innerHTML = db.activity.slice(0, 8).map((a) => `<div class="activity-item"><span class="ico"><i class="bi ${a.icon}"></i></span><div><div class="small">${BS.esc(a.text)}</div><small class="text-muted">${BS.timeAgo(a.time)}</small></div></div>`).join('');
       BS.toast('Announcement published', 'success');
     });

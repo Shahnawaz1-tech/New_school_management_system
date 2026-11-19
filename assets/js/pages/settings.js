@@ -58,6 +58,7 @@
         db.settings[key] = el.type === 'number' ? Number(el.value) : el.value.trim();
       });
       BS.save();
+      BS.audit('Updated school profile', 'School settings', db.settings.schoolName);
       // Update sidebar school name live
       const brandEl = document.querySelector('.brand-text strong');
       if (brandEl) brandEl.textContent = db.settings.schoolName;
@@ -120,7 +121,7 @@
         const used = db.students.some(s => s.cls === c.name);
         if (used) { BS.toast(`Cannot delete "${c.name}" — students are enrolled.`, 'danger'); return; }
         if (await BS.confirm(`Delete "${c.name}"?`, { title: 'Delete class?', ok: 'Delete', danger: true })) {
-          db.classes.splice(i, 1); BS.save(); renderClasses(); BS.toast('Class deleted', 'success');
+          db.classes.splice(i, 1); BS.save(); BS.audit('Deleted class', 'Class', c.name); renderClasses(); BS.toast('Class deleted', 'success');
         }
       }
     });
@@ -151,7 +152,7 @@
       } else if (previousName) {
         db.students.forEach(s => { if (s.cls === obj.name) s.section = obj.section; });
       }
-      BS.save(); classModal.hide(); renderClasses();
+      BS.save(); BS.audit(idx !== '' ? 'Updated class' : 'Added class', 'Class', obj.name, `${obj.section}; monthly fee ${obj.fee}`); classModal.hide(); renderClasses();
       BS.toast(idx !== '' ? 'Class updated' : 'Class added', 'success');
     });
 
@@ -189,7 +190,7 @@
       if (delBtn) {
         const id = delBtn.dataset.delFh;
         if (await BS.confirm('Delete this fee head?', { title: 'Delete fee head?', ok: 'Delete', danger: true })) {
-          db.feeHeads = db.feeHeads.filter(f => f.id !== id); BS.save(); renderFeeHeads(); BS.toast('Fee head deleted', 'success');
+          db.feeHeads = db.feeHeads.filter(f => f.id !== id); BS.save(); BS.audit('Deleted fee head', 'Fee head', id); renderFeeHeads(); BS.toast('Fee head deleted', 'success');
         }
       }
     });
@@ -217,7 +218,7 @@
         const nextId = 'H' + (Math.max(0, ...nums) + 1);
         db.feeHeads.push({ id: nextId, name, amount: Number($('fhAmount').value), freq: $('fhFreq').value });
       }
-      BS.save(); fhModal.hide(); renderFeeHeads();
+      BS.save(); BS.audit(editId ? 'Updated fee head' : 'Added fee head', 'Fee head', editId || db.feeHeads[db.feeHeads.length - 1].id, name); fhModal.hide(); renderFeeHeads();
       BS.toast(editId ? 'Fee head updated' : 'Fee head added', 'success');
     });
 
@@ -241,7 +242,7 @@
       const btn = e.target.closest('[data-del-sub]'); if (!btn) return;
       const i = +btn.dataset.delSub, name = db.subjects[i];
       if (await BS.confirm(`Remove subject "${name}"?`, { title: 'Remove subject?', ok: 'Remove', danger: true })) {
-        db.subjects.splice(i, 1); BS.save(); renderSubjects(); BS.toast('Subject removed', 'success');
+        db.subjects.splice(i, 1); BS.save(); BS.audit('Removed subject', 'Subject', name); renderSubjects(); BS.toast('Subject removed', 'success');
       }
     });
 
@@ -257,7 +258,7 @@
       if (!$('subjectForm').checkValidity()) return;
       const name = $('subjectName').value.trim();
       if (db.subjects.some(subject => subject.toLocaleLowerCase() === name.toLocaleLowerCase())) { BS.toast('Subject already exists', 'warning'); return; }
-      db.subjects.push(name); BS.save(); subModal.hide(); renderSubjects();
+      db.subjects.push(name); BS.save(); BS.audit('Added subject', 'Subject', name); subModal.hide(); renderSubjects();
       BS.toast('Subject added', 'success');
     });
 
@@ -348,6 +349,17 @@
       `<div class="d-flex justify-content-between"><span>Browser</span><strong>${navigator.userAgent.split(') ').pop().split(' ')[0]}</strong></div>`
     ].join('');
 
+    const auditRows = [...(db.auditLog || [])].slice(-50).reverse();
+    $('auditLogBody').innerHTML = auditRows.length ? auditRows.map(item => `<tr>
+      <td class="text-nowrap">${BS.esc(new Date(item.time).toLocaleString())}</td>
+      <td>${BS.esc(item.actor)} <span class="text-muted">· ${BS.esc(item.role)}</span></td>
+      <td>${BS.esc(item.action)}</td><td>${BS.esc(item.entity)} ${BS.esc(item.entityId)}</td><td>${BS.esc(item.details)}</td>
+    </tr>`).join('') : '<tr><td colspan="5" class="text-center text-muted py-4">No changes recorded yet.</td></tr>';
+    $('exportAuditBtn').addEventListener('click', () => {
+      BS.download(`brightschool-audit-${BS.todayISO()}.json`, JSON.stringify(db.auditLog || [], null, 2), 'application/json');
+      BS.toast('Audit log exported', 'success');
+    });
+
     // Export
     $('exportBtn').addEventListener('click', () => {
       const json = JSON.stringify(db, null, 2);
@@ -388,11 +400,12 @@
     /* Role guard: non-admin can view but not edit                          */
     /* ------------------------------------------------------------------ */
     if (!isAdmin) {
+      $('auditCard').hidden = true;
       ['addClassBtn','addFeeHeadBtn','addSubjectBtn'].forEach(id => {
         const el = $(id); if (el) { el.disabled = true; el.title = 'Admin only'; }
       });
       $('schoolForm').querySelectorAll('input,select,textarea,button[type=submit]').forEach(el => el.disabled = true);
-      ['exportBtn', 'importBtn', 'dangerResetBtn'].forEach(id => {
+      ['exportBtn', 'importBtn', 'dangerResetBtn', 'exportAuditBtn'].forEach(id => {
         const el = $(id); if (el) { el.disabled = true; el.title = 'Admin only'; }
       });
     }

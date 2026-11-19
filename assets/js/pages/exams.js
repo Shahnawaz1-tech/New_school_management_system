@@ -311,7 +311,7 @@
       });
     });
     if (errors) BS.toast(`${errors} invalid value(s) skipped.`, 'warning');
-    if (saved)  { BS.save(); BS.toast(`Marks saved (${saved} entries).`, 'success'); renderMarksTable(); }
+    if (saved)  { BS.save(); BS.audit('Saved exam marks', 'Exam', examId, `${saved} marks entries`); BS.toast(`Marks saved (${saved} entries).`, 'success'); renderMarksTable(); }
     else if (!errors) BS.toast('No new marks to save.', 'info');
   }
 
@@ -490,6 +490,7 @@
       BS.toast(`${payload.name} created.`, 'success');
     }
     BS.save();
+    BS.audit(editingExamId ? 'Updated exam' : 'Created exam', 'Exam', editingExamId || payload.id, payload.name);
     examModal.hide();
     renderSubline(); renderKpi(); renderExamCards(); populateAllSelects();
     renderMarksTable(); renderResultsTable(); renderCharts();
@@ -503,6 +504,7 @@
     db.exams = exams = exams.filter(e => e.id !== id);
     delete marks[id];
     BS.save();
+    BS.audit('Deleted exam', 'Exam', id, ex.name);
     BS.toast(`${ex.name} deleted.`, 'danger');
     renderSubline(); renderKpi(); renderExamCards(); populateAllSelects();
     renderMarksTable(); renderResultsTable(); renderCharts();

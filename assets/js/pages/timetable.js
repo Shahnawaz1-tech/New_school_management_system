@@ -445,6 +445,7 @@
     timetable[cls][di][pi] = { subject: selSub.dataset.sub, teacherId };
 
     BS.save();
+    BS.audit('Updated timetable period', 'Timetable', `${cls}/${di + 1}/${pi + 1}`, `${selSub.dataset.sub}; ${teacherId}`);
     cellModal.hide();
     BS.toast(`Period updated — ${selSub.dataset.sub}`, 'success');
     renderGrid();
@@ -458,6 +459,7 @@
     const { cls, di, pi } = editCtx;
     if (timetable[cls]?.[di]) timetable[cls][di][pi] = null;
     BS.save();
+    BS.audit('Cleared timetable period', 'Timetable', `${cls}/${di + 1}/${pi + 1}`);
     cellModal.hide();
     BS.toast('Period cleared.', 'info');
     renderGrid();
@@ -500,6 +502,7 @@
     });
 
     BS.save();
+    BS.audit('Auto-filled timetable', 'Timetable', 'School', `${filled} periods filled`);
     BS.toast(`Auto-fill complete — ${filled} slots filled.`, 'success');
     renderGrid();
     renderWorkload();

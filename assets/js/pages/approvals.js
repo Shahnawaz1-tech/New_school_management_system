@@ -396,6 +396,7 @@
       a.remarks.push({ text: remark, by: BS.user.name, date: BS.todayISO() });
     }
     BS.save();
+    BS.audit(`Marked request ${status.toLowerCase()}`, 'Approval', id, a.title);
     BS.toast(`Request "${a.title}" ${status.toLowerCase()}.`, status === 'Approved' ? 'success' : 'danger');
     renderKpi();
     renderSidebar();
@@ -432,6 +433,7 @@
       if (a && a.status === 'Pending') a.status = status;
     });
     BS.save();
+    BS.audit(`Bulk ${status.toLowerCase()} requests`, 'Approval', ids.join(', '), `${ids.length} request(s)`);
     BS.toast(`${ids.length} request(s) ${status.toLowerCase()}.`, status === 'Approved' ? 'success' : 'danger');
     renderKpi(); renderSidebar(); render();
     updateBulkBar();
@@ -456,6 +458,7 @@
     const newId = BS.nextId('AP', approvals, 1);
     approvals.push({ id: newId, type, priority, title, by, amount, details, date, deadline, status: 'Pending', remarks: [] });
     BS.save();
+    BS.audit('Submitted request', 'Approval', newId, title);
     BS.toast(`Request "${title}" submitted.`, 'success');
     requestModal.hide();
     renderKpi(); renderSidebar(); render();

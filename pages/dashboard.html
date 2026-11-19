@@ -37,13 +37,13 @@
     <div class="row g-3 mb-3">
       <div class="col-12 col-lg-8" id="cardFee">
         <section class="card-soft h-100" aria-labelledby="feeTitle">
-          <div class="card-head flex-wrap gap-2"><span id="feeTitle">Monthly fee collection</span><div class="d-flex align-items-center gap-2"><label class="visually-hidden" for="feeRange">Chart range</label><select class="form-select form-select-sm w-auto" id="feeRange" aria-label="Fee chart period"><option value="3">3 months</option><option value="6" selected>6 months</option><option value="12">12 months</option></select><button class="btn btn-sm btn-outline-secondary" id="exportDashboard" title="Download dashboard summary"><i class="bi bi-download me-1"></i>Export</button><button class="btn btn-sm btn-outline-primary" id="printDashboard" title="Print dashboard"><i class="bi bi-printer me-1"></i>Print</button><a class="btn btn-sm btn-outline-primary" href="fee.html">Open fees</a></div></div>
+          <div class="card-head flex-wrap gap-2"><span id="feeTitle">Monthly fee collection</span><div class="d-flex align-items-center gap-2"><label class="visually-hidden" for="feeRange">Chart range</label><select class="form-select form-select-sm w-auto" id="feeRange" aria-label="Fee chart period"><option value="3">3 months</option><option value="6" selected>6 months</option><option value="12">12 months</option></select><button class="btn btn-sm btn-outline-secondary" id="exportDashboard" title="Download dashboard summary"><i class="bi bi-download me-1"></i>Export</button><button class="btn btn-sm btn-outline-primary" id="printDashboard" title="Print dashboard"><i class="bi bi-printer me-1"></i>Print</button><a class="btn btn-sm btn-outline-primary" id="feeOpenLink" href="fee.html">Open fees</a></div></div>
           <div class="card-body-x"><div class="chart-box"><canvas id="feeChart" role="img" aria-label="Bar chart of billed and collected fees per month"></canvas></div></div>
         </section>
       </div>
       <div class="col-12 col-lg-4" id="cardAtt">
         <section class="card-soft h-100" aria-labelledby="attTitle">
-          <div class="card-head"><span id="attTitle">Attendance trend</span><a class="btn btn-sm btn-outline-primary" href="attendance.html">Open</a></div>
+          <div class="card-head"><span id="attTitle">Attendance trend</span><a class="btn btn-sm btn-outline-primary" id="attOpenLink" href="attendance.html">Open</a></div>
           <div class="card-body-x"><div class="chart-box"><canvas id="attChart" role="img" aria-label="Line chart of attendance percentage"></canvas></div></div>
         </section>
       </div>

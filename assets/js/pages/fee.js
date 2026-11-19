@@ -412,6 +412,7 @@
     }
 
     BS.save();
+    BS.audit(id ? 'Updated fee record' : 'Created fee record', 'Fee record', id || data.id, `${data.studentId}; ${data.month}; paid Rs ${data.paid} of Rs ${data.total}`);
     bootstrap.Modal.getInstance(document.getElementById('feeModal')).hide();
     buildKPIs(db);
     renderTable(db);
@@ -421,6 +422,7 @@
     if (!await BS.confirm('Delete this fee record permanently?', { title: 'Delete Record', ok: 'Delete', danger: true })) return;
     db.feeRecords = db.feeRecords.filter(r => r.id !== id);
     BS.save();
+    BS.audit('Deleted fee record', 'Fee record', id);
     BS.toast('Record deleted', 'danger');
     buildKPIs(db);
     renderTable(db);

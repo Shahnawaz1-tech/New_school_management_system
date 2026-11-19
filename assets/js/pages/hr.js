@@ -138,7 +138,20 @@
     document.getElementById('hrBulkDelete').addEventListener('click', bulkDelete);
 
     document.getElementById('runPayrollBtn').addEventListener('click', () => {
-      BS.toast('Payroll processed successfully for all active staff.', 'success');
+      const month = document.getElementById('payrollMonth').value;
+      db.payrollPayments[month] = db.payrollPayments[month] || {};
+      let added = 0;
+      staff.filter(s => s.status === 'Active').forEach(s => {
+        if (db.payrollPayments[month][s.id]) return;
+        const basic = Number(s.salary) || 0;
+        const allowance = Math.round(basic * 0.15), deduction = Math.round(basic * 0.05);
+        db.payrollPayments[month][s.id] = { staffId: s.id, basic, allowance, deduction, net: basic + allowance - deduction, status: 'Pending', generatedAt: new Date().toISOString(), paidAt: null, reference: '' };
+        added++;
+      });
+      if (!added) { BS.toast('Payroll is already generated for all active staff this month.', 'info'); return; }
+      BS.save();
+      BS.audit('Generated payroll', 'Payroll', month, `${added} staff payment records`);
+      BS.toast(`Payroll generated for ${added} staff. Record payments as they are made.`, 'success');
       renderPayroll();
     });
 
@@ -323,17 +336,20 @@
     const sal   = parseInt(document.getElementById('fSalary').value) || 0;
     const stat  = document.getElementById('fStaffStatus').value;
 
+    let auditId = editingId;
     if (editingId) {
       const s = staff.find(x => x.id === editingId);
       Object.assign(s, { name, designation: desig, department: dept, subject: subj, gender: gen, phone, email, joinDate: join, salary: sal, status: stat });
       BS.toast(`${name} updated successfully.`, 'success');
     } else {
       const newId = 'T-' + (100 + staff.length + 1 + Math.floor(Math.random()*100));
+      auditId = newId;
       staff.push({ id: newId, name, designation: desig, department: dept, subject: subj, gender: gen, phone, email, joinDate: join, salary: sal, status: stat });
       BS.toast(`${name} added to staff directory.`, 'success');
     }
 
     BS.save(db);
+    BS.audit(editingId ? 'Updated staff member' : 'Added staff member', 'Staff', auditId, name);
     staffModal.hide();
     renderKpi();
     render();
@@ -353,6 +369,7 @@
     if (!confirm(`Delete ${s.name}? This cannot be undone.`)) return;
     db.staff = staff = staff.filter(x => x.id !== id);
     BS.save(db);
+    BS.audit('Deleted staff member', 'Staff', id, s.name);
     BS.toast(`${s.name} removed from staff.`, 'danger');
     renderKpi();
     render();
@@ -365,6 +382,7 @@
     if (!confirm(`Delete ${ids.length} selected staff member(s)?`)) return;
     db.staff = staff = staff.filter(s => !ids.includes(s.id));
     BS.save(db);
+    BS.audit('Bulk deleted staff', 'Staff', ids.join(', '), `${ids.length} staff records`);
     BS.toast(`${ids.length} staff member(s) deleted.`, 'danger');
     document.getElementById('checkAllStaff').checked = false;
     updateBulkBar();
@@ -486,17 +504,19 @@
   function renderPayroll() {
     const month = document.getElementById('payrollMonth').value;
     const activeStaff = staff.filter(s => s.status === 'Active');
+    db.payrollPayments = db.payrollPayments || {};
+    const payments = db.payrollPayments[month] || {};
 
     let totalBasic = 0, totalNet = 0;
     const rows = activeStaff.map(s => {
-      const basic     = s.salary;
-      const allowance = Math.round(basic * 0.15);
-      const deduction = Math.round(basic * 0.05);
-      const net       = basic + allowance - deduction;
+      const saved = payments[s.id];
+      const basic = saved ? saved.basic : Number(s.salary) || 0;
+      const allowance = saved ? saved.allowance : Math.round(basic * 0.15);
+      const deduction = saved ? saved.deduction : Math.round(basic * 0.05);
+      const net = saved ? saved.net : basic + allowance - deduction;
       totalBasic += basic;
       totalNet   += net;
-      const paid = Math.random() > 0.3;
-      return { s, basic, allowance, deduction, net, paid };
+      return { s, basic, allowance, deduction, net, payment: saved || null };
     });
 
     // KPI
@@ -516,7 +536,7 @@
         </div>
       </div>`).join('');
 
-    document.getElementById('payrollBody').innerHTML = rows.map(({ s, basic, allowance, deduction, net, paid }) => `
+    document.getElementById('payrollBody').innerHTML = rows.map(({ s, basic, allowance, deduction, net, payment }) => `
       <tr>
         <td class="ps-3">
           <div class="d-flex align-items-center gap-2">
@@ -532,10 +552,12 @@
         <td class="text-success">+ Rs ${BS.fmtNum(allowance)}</td>
         <td class="text-danger">- Rs ${BS.fmtNum(deduction)}</td>
         <td class="fw-700" style="color:#06d6a0">Rs ${BS.fmtNum(net)}</td>
-        <td>${paid
-          ? '<span class="badge bg-success-subtle text-success border border-success-subtle">Paid</span>'
-          : '<span class="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>'}</td>
+        <td>${payment?.status === 'Paid'
+          ? `<span class="badge bg-success-subtle text-success border border-success-subtle">Paid</span><small class="d-block text-muted">${BS.fmtDate(payment.paidAt?.slice(0, 10))}</small>`
+          : payment ? '<span class="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>'
+            : '<span class="badge bg-secondary-subtle text-secondary border">Draft</span>'}</td>
         <td class="text-end pe-3">
+          ${payment?.status !== 'Paid' && payment ? `<button class="btn btn-sm btn-outline-success btn-payroll-paid me-1" data-id="${BS.esc(s.id)}">Mark paid</button>` : ''}
           <button class="btn btn-sm btn-outline-secondary btn-payslip" data-id="${s.id}" title="View Payslip">
             <i class="bi bi-receipt me-1"></i>Payslip
           </button>
@@ -544,6 +566,17 @@
 
     document.querySelectorAll('.btn-payslip').forEach(b =>
       b.addEventListener('click', () => showPayslipForStaff(b.dataset.id)));
+    document.querySelectorAll('.btn-payroll-paid').forEach(b => b.addEventListener('click', async () => {
+      const current = db.payrollPayments[month]?.[b.dataset.id];
+      if (!current || current.status === 'Paid') return;
+      const employee = staff.find(s => s.id === b.dataset.id);
+      if (!await BS.confirm(`Record Rs ${BS.fmtNum(current.net)} as paid to ${employee?.name || b.dataset.id}?`, { title: 'Confirm salary payment', ok: 'Mark paid' })) return;
+      current.status = 'Paid'; current.paidAt = new Date().toISOString(); current.reference = `DEMO-${month}-${b.dataset.id}`;
+      BS.save();
+      BS.audit('Recorded salary payment', 'Payroll', `${month}/${b.dataset.id}`, `Rs ${current.net}; demo reference ${current.reference}`);
+      renderPayroll();
+      BS.toast('Salary payment recorded in this browser demo.', 'success');
+    }));
 
     renderDeptChart();
   }
@@ -584,13 +617,11 @@
     if (!s) return;
     const month = document.getElementById('payrollMonth').value ||
       new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-    const basic     = s.salary;
-    const allowance = Math.round(basic * 0.15);
-    const medical   = Math.round(basic * 0.05);
-    const convey    = Math.round(basic * 0.08);
-    const provident = Math.round(basic * 0.05);
-    const tax       = Math.round(basic * 0.02);
-    const net       = basic + allowance + medical + convey - provident - tax;
+    const saved = db.payrollPayments?.[month]?.[id];
+    const basic = saved ? saved.basic : Number(s.salary) || 0;
+    const allowance = saved ? saved.allowance : Math.round(basic * 0.15);
+    const deduction = saved ? saved.deduction : Math.round(basic * 0.05);
+    const net = saved ? saved.net : basic + allowance - deduction;
 
     document.getElementById('payslipTitle').textContent = `Payslip — ${BS.esc(s.name)}`;
     document.getElementById('payslipBody').innerHTML = `
@@ -614,24 +645,22 @@
             <div class="fw-600 small mb-1 text-success">EARNINGS</div>
             <table class="payslip-table">
               <tr><td>Basic Salary</td><td>Rs ${BS.fmtNum(basic)}</td></tr>
-              <tr><td>House Allowance</td><td>Rs ${BS.fmtNum(allowance)}</td></tr>
-              <tr><td>Medical</td><td>Rs ${BS.fmtNum(medical)}</td></tr>
-              <tr><td>Conveyance</td><td>Rs ${BS.fmtNum(convey)}</td></tr>
-              <tr class="payslip-total"><td>Gross Pay</td><td>Rs ${BS.fmtNum(basic+allowance+medical+convey)}</td></tr>
+              <tr><td>Allowances</td><td>Rs ${BS.fmtNum(allowance)}</td></tr>
+              <tr class="payslip-total"><td>Gross Pay</td><td>Rs ${BS.fmtNum(basic+allowance)}</td></tr>
             </table>
           </div>
           <div class="col-6">
             <div class="fw-600 small mb-1 text-danger">DEDUCTIONS</div>
             <table class="payslip-table">
-              <tr><td>Provident Fund</td><td>Rs ${BS.fmtNum(provident)}</td></tr>
-              <tr><td>Income Tax</td><td>Rs ${BS.fmtNum(tax)}</td></tr>
-              <tr class="payslip-total"><td>Total Deductions</td><td>Rs ${BS.fmtNum(provident+tax)}</td></tr>
+              <tr><td>Payroll deductions</td><td>Rs ${BS.fmtNum(deduction)}</td></tr>
+              <tr class="payslip-total"><td>Total Deductions</td><td>Rs ${BS.fmtNum(deduction)}</td></tr>
             </table>
           </div>
         </div>
         <table class="payslip-table mt-3">
           <tr class="payslip-total"><td>NET PAY</td><td style="color:#06d6a0;font-size:1.1rem">Rs ${BS.fmtNum(net)}</td></tr>
         </table>
+        <div class="payslip-footer">Payment status: ${saved ? BS.esc(saved.status) : 'Draft'}${saved?.reference ? ` · Reference: ${BS.esc(saved.reference)}` : ''}</div>
         <div class="payslip-footer">Generated on ${new Date().toLocaleDateString()} · Bright School Management System</div>
       </div>`;
     payslipModal.show();
@@ -730,6 +759,7 @@
     if (!l) return;
     l.status = status;
     BS.save(db);
+    BS.audit(`Marked leave ${status.toLowerCase()}`, 'Leave request', id, l.type);
     BS.toast(`Leave request ${status.toLowerCase()}.`, status === 'Approved' ? 'success' : 'danger');
     renderLeaves();
   }
@@ -750,6 +780,7 @@
     const newId = 'LV-' + (db.leaves.length + 1 + Math.floor(Math.random()*100));
     db.leaves.push({ id: newId, staffId, type, from, to, reason, status: 'Pending' });
     BS.save(db);
+    BS.audit('Submitted leave request', 'Leave request', newId, `${staffId}; ${type}; ${from} to ${to}`);
     BS.toast('Leave request submitted.', 'success');
     leaveModal.hide();
     renderLeaves();
@@ -815,6 +846,7 @@
     });
 
     BS.save(db);
+    BS.audit('Saved staff attendance', 'Staff attendance', dateVal);
     BS.toast('Attendance saved successfully.', 'success');
     renderAttendance();
   }

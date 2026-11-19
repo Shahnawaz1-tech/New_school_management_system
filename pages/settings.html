@@ -270,6 +270,13 @@
               <div id="sysInfo" class="vstack gap-1 small text-muted mt-2"></div>
             </div>
           </div>
+          <div class="col-12" id="auditCard">
+            <div class="card-soft">
+              <div class="card-head"><span><i class="bi bi-clock-history me-2 text-primary"></i>Recent audit activity</span><button class="btn btn-sm btn-outline-primary" id="exportAuditBtn"><i class="bi bi-download me-1"></i>Export log</button></div>
+              <div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Time</th><th>User / Role</th><th>Action</th><th>Record</th><th>Details</th></tr></thead><tbody id="auditLogBody"></tbody></table></div>
+              <p class="small text-muted p-3 mb-0">Demo audit trail is saved in this browser and retains the latest 500 recorded changes.</p>
+            </div>
+          </div>
         </div>
       </div>
 
