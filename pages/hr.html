@@ -61,6 +61,23 @@
     .sal-bar { flex: 1; border-radius: 4px 4px 0 0; background: var(--brand); opacity: .75; transition: opacity .2s; min-width: 0; }
     .sal-bar:hover { opacity: 1; }
 
+    /* KPI card hover */
+    .kpi-card { transition: transform .18s, box-shadow .18s; cursor: default; }
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+
+    /* Animated row */
+    @keyframes rowIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+    .staff-row-animate { animation: rowIn .25s ease both; }
+
+    /* btn-xs */
+    .btn-xs { padding: .15rem .4rem; font-size: .72rem; line-height: 1.4; border-radius: 5px; }
+
+    /* Leave item approve/reject buttons */
+    .leave-item .btn-xs { min-width: 26px; }
+
+    /* Progress bar transition */
+    .progress-bar { transition: width 1s ease; }
+
     /* Profile offcanvas */
     .staff-profile-head { display: flex; gap: 1rem; align-items: center; padding: 1.25rem; background: var(--navy); color: #fff; border-radius: var(--radius) var(--radius) 0 0; }
     .staff-profile-head .avatar-lg { width: 64px; height: 64px; border-radius: 50%; background: rgba(232,163,23,.25); color: var(--amber); display: grid; place-items: center; font-size: 1.4rem; font-weight: 700; flex: none; }
@@ -179,6 +196,7 @@
     <!-- ══════════ TAB: PAYROLL ══════════ -->
     <div id="tab-payroll" class="d-none">
       <div class="row g-3 mb-3" id="payrollKpi"></div>
+
       <div class="row g-3">
         <div class="col-12 col-lg-8">
           <div class="card-soft">
