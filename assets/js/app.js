@@ -26,8 +26,16 @@
     try { cache = JSON.parse(store.get(DB_KEY)); } catch (e) { cache = null; }
     if (!cache || cache.version !== 1) { cache = BS.seed(); BS.save(); }
     // Additive migrations keep existing browser demo data usable as the demo grows.
-    ['payrollPayments', 'auditLog', 'parentLinks'].forEach((key) => {
-      if (!cache[key]) cache[key] = key === 'payrollPayments' ? {} : [];
+    ['payrollPayments', 'auditLog', 'parentLinks', 'staffAttendance'].forEach((key) => {
+      if (!cache[key]) cache[key] = ['payrollPayments', 'staffAttendance'].includes(key) ? {} : [];
+    });
+    // Separate staff attendance from student attendance in older demo snapshots.
+    Object.entries(cache.attendance || {}).forEach(([date, records]) => {
+      Object.keys(records || {}).filter(id => id.startsWith('T-')).forEach(id => {
+        cache.staffAttendance[date] = cache.staffAttendance[date] || {};
+        cache.staffAttendance[date][id] = records[id];
+        delete records[id];
+      });
     });
     if (!cache.parentLinks.length && cache.students.some(student => student.id === 'S-1003')) {
       cache.parentLinks.push({ id: 'P-1001', name: 'Tariq Mehmood', studentIds: ['S-1003', 'S-1013'].filter(id => cache.students.some(student => student.id === id)) });
@@ -59,6 +67,7 @@
   };
   BS.ROLES = {
     admin: { label: 'Admin', name: 'Waqas Butt', title: 'Administrator', icon: 'bi-shield-lock' },
+    staff: { label: 'Staff Member', name: 'Sadia Noreen', title: 'Teacher · English', icon: 'bi-person-workspace', staffId: 'T-103' },
     teacher: { label: 'Teacher', name: 'Sadia Noreen', title: 'Teacher · English', icon: 'bi-easel' },
     accountant: { label: 'Accountant', name: 'Bilal Ahmed', title: 'Accountant', icon: 'bi-calculator' },
     parent: { label: 'Parent', name: 'Tariq Mehmood', title: 'Parent', icon: 'bi-people' }

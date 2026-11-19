@@ -789,7 +789,8 @@
   /* ── Attendance ── */
   function renderAttendance() {
     const dateVal = document.getElementById('attDate').value || BS.todayISO();
-    const attMap  = (db.attendance && db.attendance[dateVal]) || {};
+    db.staffAttendance = db.staffAttendance || {};
+    const attMap  = db.staffAttendance[dateVal] || {};
 
     // KPI
     const present = Object.values(attMap).filter(v => v === 'P').length;
@@ -838,11 +839,11 @@
 
   function saveAttendance() {
     const dateVal = document.getElementById('attDate').value || BS.todayISO();
-    if (!db.attendance) db.attendance = {};
-    if (!db.attendance[dateVal]) db.attendance[dateVal] = {};
+    db.staffAttendance = db.staffAttendance || {};
+    if (!db.staffAttendance[dateVal]) db.staffAttendance[dateVal] = {};
 
     document.querySelectorAll('.att-radio:checked').forEach(r => {
-      db.attendance[dateVal][r.dataset.id] = r.value;
+      db.staffAttendance[dateVal][r.dataset.id] = r.value;
     });
 
     BS.save(db);
@@ -856,7 +857,7 @@
     const days = [];
     for (let d = 1; d <= now.getDate(); d++) {
       const iso = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const map = db.attendance && db.attendance[iso];
+      const map = db.staffAttendance && db.staffAttendance[iso];
       if (!map) { days.push('empty'); continue; }
       const p = Object.values(map).filter(v => v === 'P').length;
       const total = staff.length;

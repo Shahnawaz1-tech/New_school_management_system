@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Staff Portal · Bright School</title>
+  <link rel="icon" href="../assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link id="bs-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../assets/css/theme.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/print.css" media="print">
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/app.js"></script>
+</head>
+<body data-page="staff-portal" data-title-key="m_staff_portal" data-group="g_staff">
+  <a class="visually-hidden-focusable skip-link" href="#page">Skip to content</a>
+  <main id="page" tabindex="-1">
+    <div class="page-head">
+      <div><p class="text-muted small mb-1">Staff self-service</p><h1 class="h3 mb-1" id="staffWelcome">My Staff Portal</h1><p class="text-muted mb-0" id="staffSubline"></p></div>
+      <button class="btn btn-outline-primary" id="staffPrint"><i class="bi bi-printer me-1"></i>Print summary</button>
+    </div>
+
+    <section class="row g-3 mb-3" id="staffKpis" aria-label="My work summary"></section>
+
+    <div class="row g-3 mb-3">
+      <div class="col-12 col-lg-5">
+        <section class="card-soft h-100" aria-labelledby="profileTitle">
+          <div class="card-head"><span id="profileTitle"><i class="bi bi-person-vcard me-2 text-primary"></i>My profile</span></div>
+          <div class="card-body-x" id="staffProfile"></div>
+        </section>
+      </div>
+      <div class="col-12 col-lg-7" id="staffAttendance">
+        <section class="card-soft h-100" aria-labelledby="myAttendanceTitle">
+          <div class="card-head"><span id="myAttendanceTitle"><i class="bi bi-calendar-check me-2 text-primary"></i>My recent attendance</span><span class="small text-muted">This month</span></div>
+          <div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody id="staffAttendanceBody"></tbody></table></div>
+        </section>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-12 col-lg-6" id="staffPayroll">
+        <section class="card-soft h-100" aria-labelledby="myPayrollTitle">
+          <div class="card-head"><span id="myPayrollTitle"><i class="bi bi-cash-stack me-2 text-primary"></i>My payslips</span></div>
+          <div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Month</th><th class="text-end">Net pay</th><th>Status</th><th></th></tr></thead><tbody id="staffPayrollBody"></tbody></table></div>
+        </section>
+      </div>
+      <div class="col-12 col-lg-6" id="staffLeave">
+        <section class="card-soft h-100" aria-labelledby="leaveTitle">
+          <div class="card-head"><span id="leaveTitle"><i class="bi bi-calendar2-minus me-2 text-primary"></i>My leave requests</span><button class="btn btn-sm btn-primary" id="newStaffLeave"><i class="bi bi-plus-lg me-1"></i>Request leave</button></div>
+          <div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Type</th><th>Dates</th><th>Status</th><th></th></tr></thead><tbody id="staffLeaveBody"></tbody></table></div>
+        </section>
+      </div>
+    </div>
+
+    <section class="card-soft" aria-labelledby="staffScheduleTitle">
+      <div class="card-head"><span id="staffScheduleTitle"><i class="bi bi-calendar3-week me-2 text-primary"></i>My teaching schedule</span><span class="small text-muted">Assigned periods only</span></div>
+      <div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Day</th><th>Period</th><th>Class</th><th>Subject</th></tr></thead><tbody id="staffScheduleBody"></tbody></table></div>
+    </section>
+
+    <div class="modal fade" id="staffLeaveModal" tabindex="-1" aria-labelledby="staffLeaveModalTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered"><form class="modal-content" id="staffLeaveForm" novalidate>
+        <div class="modal-header"><h2 class="modal-title fs-5" id="staffLeaveModalTitle">Request leave</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body vstack gap-3">
+          <div><label class="form-label" for="staffLeaveType">Leave type</label><select id="staffLeaveType" class="form-select" required><option value="">Choose type…</option><option>Sick Leave</option><option>Casual Leave</option><option>Annual Leave</option><option>Unpaid Leave</option></select><div class="invalid-feedback">Choose a leave type.</div></div>
+          <div class="row g-2"><div class="col-6"><label class="form-label" for="staffLeaveFrom">From</label><input id="staffLeaveFrom" class="form-control" type="date" required><div class="invalid-feedback">Required.</div></div><div class="col-6"><label class="form-label" for="staffLeaveTo">To</label><input id="staffLeaveTo" class="form-control" type="date" required><div class="invalid-feedback">Required.</div></div></div>
+          <div><label class="form-label" for="staffLeaveReason">Reason</label><textarea id="staffLeaveReason" class="form-control" rows="3" maxlength="240" required></textarea><div class="invalid-feedback">Please add a short reason.</div></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit">Submit request</button></div>
+      </form></div>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/layout.js"></script>
+  <script src="../assets/js/pages/staff-portal.js"></script>
+</body>
+</html>

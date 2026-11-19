@@ -49,6 +49,21 @@
         kpi('bi-calendar-check-fill', marked.length ? pct(present, marked.length) + '%' : '—', 'Attendance today', 'attendance.html', marked.length ? `${present} of ${marked.length} marked present` : 'Not marked yet')
       ];
       quick = [['students.html', 'bi-person-plus', 'Add student'], ['fee.html', 'bi-receipt', 'Receive fee'], ['attendance.html', 'bi-calendar-check', 'Mark attendance']];
+    } else if (role === 'staff') {
+      const employee = db.staff.find(s => s.id === user.staffId);
+      const staffMarks = Object.entries(db.staffAttendance || {}).filter(([, day]) => day[user.staffId]);
+      const thisMonthMarks = staffMarks.filter(([date]) => date.startsWith(db.currentMonth));
+      const payroll = db.payrollPayments?.[db.currentMonth]?.[user.staffId];
+      const pendingLeaves = db.leaves.filter(l => l.staffId === user.staffId && l.status === 'Pending').length;
+      subline = employee ? `${employee.designation} · ${employee.department}` : 'Staff profile is not linked yet.';
+      show.fee = false; show.cls = false;
+      kpis = [
+        kpi('bi-calendar-check-fill', `${thisMonthMarks.filter(([, day]) => day[user.staffId] === 'P').length}/${thisMonthMarks.length}`, 'Attendance this month', 'staff-portal.html#staffAttendance'),
+        kpi('bi-cash-stack', payroll ? BS.pkr(payroll.net) : '—', 'Current payroll', 'staff-portal.html#staffPayroll', payroll ? payroll.status : 'Not generated'),
+        kpi('bi-calendar2-minus', pendingLeaves, 'Pending leave requests', 'staff-portal.html#staffLeave'),
+        kpi('bi-person-badge', employee?.designation || '—', 'My role', 'staff-portal.html')
+      ];
+      quick = [['staff-portal.html', 'bi-person-workspace', 'Open my portal']];
     } else if (role === 'teacher') {
       subline = classesPending ? `${classesPending} classes still need attendance today.` : 'All classes are marked for today.';
       show.fee = false;
@@ -96,6 +111,7 @@
     row3.forEach((el) => (el.className = `col-12 col-lg-${12 / row3.length}`));
     if (role === 'parent') { $('feeTitle').textContent = `${child.name.split(' ')[0]}'s fees`; $('attTitle').textContent = 'Attendance by week'; }
     if (role === 'parent') { $('feeOpenLink').remove(); $('attOpenLink').remove(); $('cardAct').remove(); }
+    if (role === 'staff') { $('attTitle').textContent = 'My attendance'; $('attOpenLink').remove(); $('cardAct').remove(); }
 
     /* ---------- Class and section overview ---------- */
     const classFilter = $('classSectionFilter');
@@ -150,6 +166,10 @@
           const chunk = last30.slice(i, i + size).map((d) => db.attendance[d][child.id]).filter(Boolean);
           labels.push('Wk ' + (labels.length + 1)); values.push(pct(chunk.filter((x) => x === 'P').length, chunk.length));
         }
+      } else if (role === 'staff') {
+        const dates = Object.keys(db.staffAttendance || {}).filter(d => db.staffAttendance[d][user.staffId]).sort().slice(-14);
+        labels = dates.map(d => d.slice(8) + '/' + d.slice(5, 7));
+        values = dates.map(d => db.staffAttendance[d][user.staffId] === 'P' ? 100 : 0);
       } else {
         const dates = attDates.filter((d) => Object.keys(db.attendance[d]).length > 20).slice(-14);
         labels = dates.map((d) => d.slice(8) + '/' + d.slice(5, 7));

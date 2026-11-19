@@ -8,6 +8,7 @@
   const BS = window.BS;
   const blurbs = {
     admin: 'Full access to every module and report.',
+    staff: 'Your profile, attendance, payslips, timetable and leave requests.',
     teacher: 'Attendance, marks, timetable and students.',
     accountant: 'Fee collection, challans and approvals.',
     parent: 'Your child’s attendance, fees and results.'

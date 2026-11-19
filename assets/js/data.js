@@ -195,6 +195,6 @@
       bankName: 'Meezan Bank', accountTitle: 'Bright School', accountNo: '0123-4567890-01', dueDay: 10, lateFine: 200
     };
 
-    return { version: 1, settings, classes, feeHeads, students, feeRecords, attendance, staff, subjects, exams, marks, stages, leads, leaves, approvals, days, periods, timetable, announcements, activity, notifications, parentLinks, payrollPayments: {}, auditLog: [], currentMonth: curMonth };
+    return { version: 1, settings, classes, feeHeads, subjects, students, feeRecords, attendance, staffAttendance: {}, staff, exams, marks, stages, leads, leaves, approvals, days, periods, timetable, announcements, activity, notifications, parentLinks, payrollPayments: {}, auditLog: [], currentMonth: curMonth };
   };
 })();

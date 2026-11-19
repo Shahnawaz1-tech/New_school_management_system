@@ -10,15 +10,15 @@
 
   /* ---------- Translations (menu + shell labels only) ---------- */
   const I18N = {
-    en: { g_overview: 'Overview', g_academics: 'Academics', g_finance: 'Finance', g_people: 'People & Growth', g_workflow: 'Workflow', g_system: 'System',
+    en: { g_overview: 'Overview', g_academics: 'Academics', g_finance: 'Finance', g_people: 'People & Growth', g_workflow: 'Workflow', g_system: 'System', g_staff: 'My Workspace',
       m_dashboard: 'Dashboard', m_students: 'Students', m_attendance: 'Attendance', m_exams: 'Exams', m_timetable: 'Timetable', m_fee: 'Fee Management',
-      m_hr: 'HR & Payroll', m_crm: 'Admissions CRM', m_approvals: 'Approvals', m_mentor: 'Mentor AI', m_settings: 'Settings',
+      m_hr: 'HR & Payroll', m_crm: 'Admissions CRM', m_approvals: 'Approvals', m_mentor: 'Mentor AI', m_settings: 'Settings', m_staff_portal: 'My Staff Portal',
       home: 'Home', search: 'Search students…', notifications: 'Notifications', markRead: 'Mark all read', noNotif: 'You are all caught up',
       theme: 'Toggle theme', menu: 'Toggle menu', switchRole: 'Switch role', reset: 'Reset demo data', logout: 'Sign out', myProfile: 'School settings',
       demo: 'Demo build · fake data only' },
-    ur: { g_overview: 'جائزہ', g_academics: 'تعلیمی', g_finance: 'مالیات', g_people: 'عملہ اور داخلے', g_workflow: 'ورک فلو', g_system: 'سسٹم',
+    ur: { g_overview: 'جائزہ', g_academics: 'تعلیمی', g_finance: 'مالیات', g_people: 'عملہ اور داخلے', g_workflow: 'ورک فلو', g_system: 'سسٹم', g_staff: 'میرا ورک اسپیس',
       m_dashboard: 'ڈیش بورڈ', m_students: 'طلباء', m_attendance: 'حاضری', m_exams: 'امتحانات', m_timetable: 'ٹائم ٹیبل', m_fee: 'فیس کا انتظام',
-      m_hr: 'عملہ اور تنخواہ', m_crm: 'داخلہ لیڈز', m_approvals: 'منظوریاں', m_mentor: 'مینٹر اے آئی', m_settings: 'ترتیبات',
+      m_hr: 'عملہ اور تنخواہ', m_crm: 'داخلہ لیڈز', m_approvals: 'منظوریاں', m_mentor: 'مینٹر اے آئی', m_settings: 'ترتیبات', m_staff_portal: 'میرا اسٹاف پورٹل',
       home: 'ہوم', search: 'طلباء تلاش کریں…', notifications: 'اطلاعات', markRead: 'سب پڑھا ہوا کریں', noNotif: 'کوئی نئی اطلاع نہیں',
       theme: 'تھیم تبدیل کریں', menu: 'مینو', switchRole: 'کردار تبدیل کریں', reset: 'ڈیمو ڈیٹا ری سیٹ', logout: 'سائن آؤٹ', myProfile: 'اسکول کی ترتیبات',
       demo: 'ڈیمو ورژن · فرضی ڈیٹا' }
@@ -32,12 +32,14 @@
     { g: 'g_finance', items: [['fee', 'bi-cash-coin', 'm_fee']] },
     { g: 'g_people', items: [['hr', 'bi-person-badge-fill', 'm_hr'], ['crm', 'bi-funnel-fill', 'm_crm']] },
     { g: 'g_workflow', items: [['approvals', 'bi-check2-square', 'm_approvals'], ['mentor-ai', 'bi-stars', 'm_mentor']] },
+    { g: 'g_staff', items: [['staff-portal', 'bi-person-workspace', 'm_staff_portal']] },
     { g: 'g_system', items: [['settings', 'bi-gear-fill', 'm_settings']] }
   ];
   const ACCESS = {
     admin: '*',
     teacher: ['dashboard', 'students', 'attendance', 'exams', 'timetable', 'mentor-ai', 'settings'],
     accountant: ['dashboard', 'students', 'fee', 'approvals', 'mentor-ai', 'settings'],
+    staff: ['dashboard', 'staff-portal'],
     // Until child-scoped detail views are implemented, keep the demo parent
     // role on its child-scoped dashboard to avoid exposing school-wide records.
     parent: ['dashboard']
@@ -105,9 +107,9 @@
                 <i class="bi bi-chevron-down small text-muted profile-meta"></i></button>
               <ul class="dropdown-menu dropdown-menu-end">
                 <li><h6 class="dropdown-header">${BS.esc(BS.user.name)} · ${BS.esc(BS.user.title)}</h6></li>
-                ${role !== 'parent' ? `<li><a class="dropdown-item" href="settings.html"><i class="bi bi-gear me-2"></i>${BS.t('myProfile')}</a></li>` : ''}
+                ${!['parent', 'staff'].includes(role) ? `<li><a class="dropdown-item" href="settings.html"><i class="bi bi-gear me-2"></i>${BS.t('myProfile')}</a></li>` : ''}
                 <li><a class="dropdown-item" href="login.html"><i class="bi bi-arrow-left-right me-2"></i>${BS.t('switchRole')}</a></li>
-                <li><button class="dropdown-item" id="resetBtn"><i class="bi bi-arrow-counterclockwise me-2"></i>${BS.t('reset')}</button></li>
+                ${role === 'admin' ? `<li><button class="dropdown-item" id="resetBtn"><i class="bi bi-arrow-counterclockwise me-2"></i>${BS.t('reset')}</button></li>` : ''}
                 <li><hr class="dropdown-divider"></li>
                 <li><button class="dropdown-item text-danger" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>${BS.t('logout')}</button></li>
               </ul>
@@ -168,7 +170,8 @@
     document.getElementById('markRead').addEventListener('click', () => { db.notifications.forEach((n) => (n.read = true)); BS.save(); renderNotifs(); BS.toast('All notifications marked as read', 'info'); });
 
     /* Reset + logout */
-    document.getElementById('resetBtn').addEventListener('click', async () => {
+    const resetBtn = document.getElementById('resetBtn');
+    if (resetBtn) resetBtn.addEventListener('click', async () => {
       if (await BS.confirm('All added, edited and deleted records will be replaced with the original demo data.', { title: 'Reset demo data?', ok: 'Reset now', danger: true })) BS.reset();
     });
     document.getElementById('logoutBtn').addEventListener('click', () => { BS.ui.set('role', null); location.href = 'login.html'; });
